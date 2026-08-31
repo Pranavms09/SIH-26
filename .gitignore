@@ -1,0 +1,56 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Python Virtual Environments & Packages
+venv/
+.venv/
+env/
+ENV/
+backend/venv/
+
+# Node Dependencies & Logs
+node_modules/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python Caches & Tooling
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage/
+htmlcov/
+
+# Build & Distribution Artifacts
+dist/
+build/
+*.egg-info/
+
+# Uploads & Generated Runtime Data
+uploads/
+**/uploads/
+**/processed/
+**/output/
+backend/data/ner/raw/
+
+# Nested Git Repository Remnants
+frontend/Bhulekh/
+
+# IDE & OS Artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+tmp/
+temp/

@@ -1,0 +1,99 @@
+/* Custom Theme Variables & Layout Overrides */
+
+/* Obsidian Premium Dark Mode Colors (Default) */
+:root {
+  /* Premium Dark Base Backgrounds */
+  --bg-base: #05070a;
+  --bg-secondary: #0a0c10;
+  --bg-surface: #101319;
+  --bg-elevated: #171b22;
+  --bg-hover: #1f2530;
+  --bg-selected: #282f3d;
+
+  /* Typography Fonts & Fallbacks */
+  --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Premium Light Mode Overrides */
+.light-mode {
+  /* Backgrounds */
+  --bg-base: #f5f6f8;
+  --bg-secondary: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-elevated: #edf0f4;
+  --bg-hover: #e2e6ea;
+  --bg-selected: #d8dee4;
+
+  /* Glass */
+  --glass-bg: rgba(0, 0, 0, 0.02);
+  --glass-bg-hover: rgba(0, 0, 0, 0.04);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-strong: rgba(0, 0, 0, 0.15);
+  --glass-blur: blur(12px);
+
+  /* Status Colors (Light Mode) */
+  --status-verified: #3d6b4a;
+  --status-verified-bg: rgba(61, 107, 74, 0.12);
+  --status-processing: #2b6cb0;
+  --status-processing-bg: rgba(43, 108, 176, 0.12);
+  --status-review: #a87311;
+  --status-review-bg: rgba(168, 115, 17, 0.12);
+  --status-error: #b73a3a;
+  --status-error-bg: rgba(183, 58, 58, 0.12);
+  --status-pending: #4a5568;
+  --status-pending-bg: rgba(74, 85, 104, 0.12);
+
+  /* Text Colors */
+  --text-primary: #121620;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --text-disabled: #a0aec0;
+  --text-accent: #3d6b4a;
+  --text-gold: #a87311;
+
+  /* Border Colors */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --border-subtle: rgba(0, 0, 0, 0.04);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Layout Core Overrides */
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+  border-inline: none;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+.page-overview, .page-documents, .page-processing, .page-records, .page-analytics, .page-audit, .gis-page {
+  text-align: left !important;
+}
+
+.kpi-grid, .dashboard-grid, .upload-panel, .documents-layout, .records-search-bar, .filter-tabs {
+  text-align: left !important;
+}

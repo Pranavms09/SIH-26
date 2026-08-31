@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BhuLekha — Local NER Annotator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 320px;
+      background-color: var(--card-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #60a5fa;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-header p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .samples-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sample-item {
+      padding: 12px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sample-item:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-color: var(--primary);
+    }
+
+    .sample-item.active {
+      background-color: rgba(59, 130, 246, 0.2);
+      border-color: var(--primary);
+    }
+
+    .sample-doc-id {
+      font-weight: 600;
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+
+    .sample-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-raw {
+      background-color: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .badge-annotated {
+      background-color: rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    /* Main Area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .top-bar {
+      padding: 16px 24px;
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .doc-info h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .doc-info span {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 0.75rem;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-success {
+      background-color: var(--accent);
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-danger:hover {
+      background-color: rgba(239, 68, 68, 0.4);
+    }
+
+    /* Workspace split */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 16px;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .ocr-panel {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 0.9rem;
+      background-color: rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ocr-text-box {
+      flex: 1;
+      padding: 20px;
+      font-family: 'Fira Code', monospace;
+      font-size: 1rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      user-select: text;
+      background-color: #0b1120;
+    }
+
+    /* Annotation Tool Panel */
+    .annotator-panel {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .tool-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .selected-text-box {
+      background-color: #0b1120;
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      min-height: 48px;
+      color: #38bdf8;
+      word-break: break-all;
+    }
+
+    .label-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .label-btn {
+      padding: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .label-btn:hover, .label-btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .suggestions-list, .annotations-list {
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sugg-card, .anno-card {
+      background-color: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sugg-card {
+      border-left: 3px solid var(--primary);
+    }
+
+    .sugg-info, .anno-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sugg-label, .anno-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #60a5fa;
+    }
+
+    .sugg-val, .anno-val {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    .sugg-meta {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      background-color: var(--accent);
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      display: none;
+      z-index: 100;
+    }
+
+    .toast-error {
+      background-color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>BhuLekha NER</h1>
+      <p>Local Annotation Tool (Step 15E)</p>
+    </div>
+    <div class="samples-list" id="samplesList">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="doc-info">
+        <h2 id="activeDocId">Select a raw sample to annotate</h2>
+        <span id="activeFilename">No sample loaded</span>
+      </div>
+      <div>
+        <button class="btn btn-success" id="saveBtn" onclick="saveAnnotations()" disabled>✓ Save Annotation</button>
+      </div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace">
+      <!-- OCR Text Box -->
+      <div class="ocr-panel">
+        <div class="panel-header">Raw OCR Text (Highlight text to annotate)</div>
+        <div class="ocr-text-box" id="ocrBox" onmouseup="handleSelection()">Select a document from the left sidebar...</div>
+      </div>
+
+      <!-- Annotator Tools -->
+      <div class="annotator-panel">
+        <!-- AI Suggestions Section -->
+        <div class="panel-header">AI / Extractor Suggestions (<span id="suggCount">0</span>)</div>
+        <div class="suggestions-list" id="suggestionsList">
+          <div style="color:var(--muted); font-size:0.85rem;">Load a sample to fetch pre-annotation suggestions.</div>
+        </div>
+
+        <!-- Manual Tool Section -->
+        <div class="tool-section">
+          <div style="font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px;">SELECTED TEXT</div>
+          <div class="selected-text-box" id="selectedBox">Highlight text in OCR panel...</div>
+          <div style="font-size: 0.75rem; color: var(--muted); margin-top: 4px;" id="spanBox">Start: - | End: -</div>
+
+          <div style="font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-top: 14px; margin-bottom: 6px;">ENTITY LABEL</div>
+          <div class="label-grid" id="labelGrid">
+            <!-- Dynamically populated -->
+          </div>
+
+          <button class="btn btn-primary" style="width: 100%; margin-top: 14px; justify-content: center;" onclick="addAnnotation()">+ Add Manual Annotation</button>
+        </div>
+
+        <!-- Current Annotations List -->
+        <div class="panel-header">Current Ground-Truth Annotations (<span id="annoCount">0</span>)</div>
+        <div class="annotations-list" id="annotationsList">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Notification</div>
+
+  <script>
+    let activeDocId = null;
+    let fullOcrText = "";
+    let selectedSpan = null; // { start, end, text }
+    let selectedLabel = null;
+    let currentEntities = []; // [{ start, end, label }, ...]
+    let currentSuggestions = []; // [{ label, value, start, end, confidence, source }, ...]
+
+    const LABELS = [
+      "DISTRICT",
+      "TALUKA",
+      "VILLAGE",
+      "SURVEY_NUMBER",
+      "OWNER_NAME",
+      "AREA",
+      "LAND_HOLDING_TYPE"
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderLabelGrid();
+      loadSamplesList();
+    });
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.className = isError ? "toast toast-error" : "toast";
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 3500);
+    }
+
+    function renderLabelGrid() {
+      const grid = document.getElementById("labelGrid");
+      grid.innerHTML = "";
+      LABELS.forEach(lbl => {
+        const btn = document.createElement("button");
+        btn.className = "label-btn";
+        btn.innerText = lbl;
+        btn.onclick = () => selectLabel(lbl, btn);
+        grid.appendChild(btn);
+      });
+    }
+
+    function selectLabel(lbl, btnElement) {
+      selectedLabel = lbl;
+      document.querySelectorAll(".label-btn").forEach(b => b.classList.remove("active"));
+      btnElement.classList.add("active");
+    }
+
+    async function loadSamplesList() {
+      try {
+        const res = await fetch("/api/samples");
+        const data = await res.json();
+        const container = document.getElementById("samplesList");
+        container.innerHTML = "";
+
+        if (!data.samples || data.samples.length === 0) {
+          container.innerHTML = "<div style='color:var(--muted); font-size:0.85rem; padding:12px;'>No raw samples found in data/ner/raw/</div>";
+          return;
+        }
+
+        data.samples.forEach(s => {
+          const item = document.createElement("div");
+          item.className = `sample-item ${activeDocId === s.document_id ? 'active' : ''}`;
+          item.onclick = () => loadSample(s.document_id);
+
+          const badgeClass = s.annotated ? "badge-annotated" : "badge-raw";
+          const statusText = s.annotated ? "Annotated" : "Raw";
+
+          item.innerHTML = `
+            <div class="sample-doc-id">${s.document_id}</div>
+            <div class="sample-meta">
+              <span>${s.filename}</span>
+              <span class="badge ${badgeClass}">${statusText}</span>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      } catch (err) {
+        showToast("Error loading samples list", true);
+      }
+    }
+
+    async function loadSample(docId) {
+      activeDocId = docId;
+      loadSamplesList();
+
+      try {
+        const res = await fetch(`/api/sample/${docId}`);
+        if (!res.ok) throw new Error("Failed to load sample");
+        const data = await res.json();
+
+        document.getElementById("activeDocId").innerText = `Doc ID: ${data.document_id}`;
+        document.getElementById("activeFilename").innerText = data.filename;
+        fullOcrText = data.text;
+        currentEntities = data.entities || [];
+
+        renderOcrText();
+        renderAnnotations();
+        document.getElementById("saveBtn").disabled = false;
+        resetSelection();
+
+        // Load Pre-annotation Suggestions
+        loadSuggestions(docId);
+
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    async function loadSuggestions(docId) {
+      try {
+        const res = await fetch(`/api/sample/${docId}/suggestions`);
+        if (!res.ok) throw new Error("Failed to load suggestions");
+        const data = await res.json();
+        currentSuggestions = data.suggestions || [];
+        renderSuggestions();
+      } catch (err) {
+        currentSuggestions = [];
+        renderSuggestions();
+      }
+    }
+
+    function renderOcrText() {
+      const box = document.getElementById("ocrBox");
+      box.innerText = fullOcrText;
+    }
+
+    function renderSuggestions() {
+      const list = document.getElementById("suggestionsList");
+      document.getElementById("suggCount").innerText = currentSuggestions.length;
+      list.innerHTML = "";
+
+      if (currentSuggestions.length === 0) {
+        list.innerHTML = "<div style='color:var(--muted); font-size:0.85rem;'>No pre-annotation suggestions available for this record.</div>";
+        return;
+      }
+
+      currentSuggestions.forEach((sugg, idx) => {
+        // Check if suggestion overlaps existing annotation
+        let overlaps = false;
+        for (const e of currentEntities) {
+          if (!(sugg.end <= e.start || e.end <= sugg.start)) {
+            overlaps = true;
+            break;
+          }
+        }
+
+        const card = document.createElement("div");
+        card.className = "sugg-card";
+
+        const confText = sugg.confidence ? `Confidence: ${(sugg.confidence * 100).toFixed(0)}%` : "Confidence: N/A";
+        const metaText = `${confText} | Source: ${sugg.source}`;
+
+        card.innerHTML = `
+          <div class="sugg-info">
+            <span class="sugg-label">${sugg.label}</span>
+            <span class="sugg-val">"${sugg.value}"</span>
+            <span class="sugg-meta">${metaText}</span>
+            ${overlaps ? '<span style="color:var(--warning); font-size:0.7rem; font-weight:600;">Overlaps existing annotation</span>' : ''}
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-success" ${overlaps ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''} onclick="acceptSuggestion(${idx})">✓ Accept</button>
+            <button class="btn btn-sm btn-danger" onclick="rejectSuggestion(${idx})">✕ Reject</button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function acceptSuggestion(idx) {
+      const sugg = currentSuggestions[idx];
+      if (!sugg) return;
+
+      // Overlap check against currentEntities
+      for (const e of currentEntities) {
+        if (!(sugg.end <= e.start || e.end <= sugg.start)) {
+          showToast(`Overlap error with existing entity '${fullOcrText.slice(e.start, e.end)}' [${e.start}:${e.end}] (${e.label})`, true);
+          return;
+        }
+      }
+
+      // Add to current annotations
+      currentEntities.push({
+        start: sugg.start,
+        end: sugg.end,
+        label: sugg.label
+      });
+      currentEntities.sort((a, b) => a.start - b.start);
+
+      // Remove from suggestions
+      currentSuggestions.splice(idx, 1);
+
+      renderAnnotations();
+      renderSuggestions();
+      showToast(`Accepted suggestion: ${sugg.label}`);
+    }
+
+    function rejectSuggestion(idx) {
+      const sugg = currentSuggestions[idx];
+      if (sugg) {
+        currentSuggestions.splice(idx, 1);
+        renderSuggestions();
+        showToast(`Rejected suggestion: ${sugg.label}`);
+      }
+    }
+
+    function handleSelection() {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) return;
+
+      const selText = selection.toString();
+      if (!selText) return;
+
+      const range = selection.getRangeAt(0);
+      const ocrBox = document.getElementById("ocrBox");
+
+      if (!ocrBox.contains(range.commonAncestorContainer)) return;
+
+      const approxStart = getCharOffsetRelativeTo(ocrBox, range.startContainer, range.startOffset);
+      const targetText = selText;
+
+      const occurrences = [];
+      let idx = fullOcrText.indexOf(targetText, 0);
+      while (idx !== -1) {
+        occurrences.push(idx);
+        idx = fullOcrText.indexOf(targetText, idx + 1);
+      }
+
+      if (occurrences.length === 0) {
+        showToast("Selected text not found in raw OCR string", true);
+        return;
+      }
+
+      let bestStart = occurrences[0];
+      let minDiff = Math.abs(bestStart - approxStart);
+      for (let i = 1; i < occurrences.length; i++) {
+        const diff = Math.abs(occurrences[i] - approxStart);
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestStart = occurrences[i];
+        }
+      }
+
+      const bestEnd = bestStart + targetText.length;
+
+      if (bestEnd > fullOcrText.length) {
+        showToast(`Calculated end index (${bestEnd}) exceeds text length (${fullOcrText.length})`, true);
+        return;
+      }
+
+      const sliceMatch = fullOcrText.slice(bestStart, bestEnd);
+      if (sliceMatch !== targetText) {
+        showToast("Offset slice match verification failed", true);
+        return;
+      }
+
+      selectedSpan = { start: bestStart, end: bestEnd, text: targetText };
+      document.getElementById("selectedBox").innerText = selectedSpan.text;
+      document.getElementById("spanBox").innerText = `Start: ${selectedSpan.start} | End: ${selectedSpan.end}`;
+    }
+
+    function getCharOffsetRelativeTo(container, targetNode, targetOffset) {
+      let charCount = 0;
+      const nodeStack = [container];
+
+      while (nodeStack.length > 0) {
+        const node = nodeStack.pop();
+
+        if (node === targetNode) {
+          return charCount + targetOffset;
+        }
+
+        if (node.nodeType === Node.TEXT_NODE) {
+          charCount += node.length;
+        } else {
+          for (let i = node.childNodes.length - 1; i >= 0; i--) {
+            nodeStack.push(node.childNodes[i]);
+          }
+        }
+      }
+      return 0;
+    }
+
+    function resetSelection() {
+      selectedSpan = null;
+      document.getElementById("selectedBox").innerText = "Highlight text in OCR panel...";
+      document.getElementById("spanBox").innerText = "Start: - | End: -";
+    }
+
+    function addAnnotation() {
+      if (!selectedSpan) {
+        showToast("Please highlight text in the OCR box first.", true);
+        return;
+      }
+      if (!selectedLabel) {
+        showToast("Please select an entity label.", true);
+        return;
+      }
+
+      for (const e of currentEntities) {
+        if (!(selectedSpan.end <= e.start || e.end <= selectedSpan.start)) {
+          showToast(`Overlap error with existing entity '${fullOcrText.slice(e.start, e.end)}' [${e.start}:${e.end}] (${e.label})`, true);
+          return;
+        }
+      }
+
+      currentEntities.push({
+        start: selectedSpan.start,
+        end: selectedSpan.end,
+        label: selectedLabel
+      });
+
+      currentEntities.sort((a, b) => a.start - b.start);
+      renderAnnotations();
+      renderSuggestions(); // refresh overlap status on suggestions
+      resetSelection();
+      showToast(`Added ${selectedLabel} annotation.`);
+    }
+
+    function removeAnnotation(idx) {
+      currentEntities.splice(idx, 1);
+      renderAnnotations();
+      renderSuggestions(); // refresh overlap status on suggestions
+    }
+
+    function renderAnnotations() {
+      const list = document.getElementById("annotationsList");
+      document.getElementById("annoCount").innerText = currentEntities.length;
+      list.innerHTML = "";
+
+      if (currentEntities.length === 0) {
+        list.innerHTML = "<div style='color:var(--muted); font-size:0.85rem; padding:12px;'>No ground-truth annotations added yet.</div>";
+        return;
+      }
+
+      currentEntities.forEach((e, idx) => {
+        const val = fullOcrText.slice(e.start, e.end);
+        const card = document.createElement("div");
+        card.className = "anno-card";
+        card.innerHTML = `
+          <div class="anno-info">
+            <span class="anno-label">${e.label}</span>
+            <span class="anno-val">"${val}"</span>
+            <span class="anno-span">[${e.start} : ${e.end}]</span>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="removeAnnotation(${idx})">✕</button>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    async function saveAnnotations() {
+      if (!activeDocId) return;
+
+      try {
+        const res = await fetch("/api/annotate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            document_id: activeDocId,
+            entities: currentEntities
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Save failed");
+
+        showToast(data.message);
+        loadSamplesList();
+
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+  </script>
+</body>
+</html>
