@@ -192,8 +192,7 @@ def analyze_document_complexity(
         len(detected_owner_terms) > 0
         or "," in owner_str
         or "\n" in owner_str
-        or "आणि" in owner_str
-        or "व" in owner_str
+        or bool(re.search(r"(?:\s|^)(?:आणि|व)(?:\s|$)", owner_str))
     )
 
     if has_multiple_owners:

@@ -155,7 +155,8 @@ def run_tests():
     print("\n7. Verifying land_records.jsonl dataset update...")
     assert DATASET_PATH.exists()
     jsonl_content = DATASET_PATH.read_text(encoding="utf-8")
-    assert ocr_text in jsonl_content
+    records = [json.loads(line) for line in jsonl_content.splitlines() if line.strip()]
+    assert any(r.get("text") == ocr_text for r in records)
     print("✓ land_records.jsonl updated with annotated record.")
 
     # 9. Verify manifest updated (raw -> annotated)
