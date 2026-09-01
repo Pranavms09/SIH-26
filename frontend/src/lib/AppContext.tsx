@@ -22,6 +22,8 @@ interface AppContextType {
   addLandRecord: (record: LandRecord) => void;
   activeProcessResult: ProcessResponse | null;
   setActiveProcessResult: (res: ProcessResponse | null) => void;
+  activeDocumentFile: File | null;
+  setActiveDocumentFile: (file: File | null) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -35,6 +37,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [documents, setDocuments] = useState<Document[]>(mockDocuments);
   const [landRecords, setLandRecords] = useState<LandRecord[]>(mockLandRecords);
   const [activeProcessResult, setActiveProcessResult] = useState<ProcessResponse | null>(null);
+  const [activeDocumentFile, setActiveDocumentFile] = useState<File | null>(null);
 
   const toastIdRef = useRef(0);
 
@@ -83,6 +86,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       documents, setDocuments, addDocument,
       landRecords, setLandRecords, addLandRecord,
       activeProcessResult, setActiveProcessResult,
+      activeDocumentFile, setActiveDocumentFile,
     }}>
       {children}
     </AppContext.Provider>

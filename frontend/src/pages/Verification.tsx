@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Edit3, X, AlertTriangle, Info, ChevronDown, ChevronUp, Cpu, Sparkles, FileText } from 'lucide-react';
+import { Check, Edit3, X, AlertTriangle, Info, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, ArrowLeft, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { useApp } from '../lib/AppContext';
+import { useNavigate } from 'react-router-dom';
 import type { ExtractedField } from '../types';
 
 type FieldStatus = 'auto' | 'accepted' | 'edited' | 'rejected' | 'needs_review';
@@ -20,8 +21,132 @@ function ConfidenceBar({ value }: { value: number }) {
   );
 }
 
+/** Real document preview panel: renders PDF in an iframe, images in an <img> */
+function DocumentPreview({ file, filename }: { file: File | null; filename?: string }) {
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const isPdf = file?.type === 'application/pdf' || filename?.toLowerCase().endsWith('.pdf');
+  const isImage = file && (file.type.startsWith('image/') || /\.(png|jpe?g|tiff?|webp)$/i.test(file.name));
+
+  useEffect(() => {
+    if (!file) { setObjectUrl(null); return; }
+    const url = URL.createObjectURL(file);
+    setObjectUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  if (!file || !objectUrl) {
+    // Fallback: simulated OCR document skeleton
+    return (
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 12,
+          padding: 24,
+          background: 'var(--bg-card)',
+          borderRadius: 8,
+          border: '1px dashed var(--border-color)',
+          color: 'var(--text-muted)',
+          minHeight: 280,
+        }}
+      >
+        <FileText size={36} style={{ opacity: 0.3 }} />
+        <span style={{ fontSize: 'var(--text-sm)' }}>No document preview available</span>
+        <span style={{ fontSize: 'var(--text-xs)' }}>Upload a document to see it here</span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, minHeight: 300 }}>
+      {/* Zoom controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
+        <button
+          className="btn btn-ghost btn-sm"
+          style={{ padding: '2px 6px', fontSize: 11 }}
+          onClick={() => setZoom(z => Math.max(0.4, z - 0.2))}
+          title="Zoom out"
+        >
+          <ZoomOut size={12} />
+        </button>
+        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', minWidth: 36, textAlign: 'center' }}>
+          {Math.round(zoom * 100)}%
+        </span>
+        <button
+          className="btn btn-ghost btn-sm"
+          style={{ padding: '2px 6px', fontSize: 11 }}
+          onClick={() => setZoom(z => Math.min(3, z + 0.2))}
+          title="Zoom in"
+        >
+          <ZoomIn size={12} />
+        </button>
+        <button
+          className="btn btn-ghost btn-sm"
+          style={{ padding: '2px 6px', fontSize: 11 }}
+          onClick={() => setZoom(1)}
+          title="Reset zoom"
+        >
+          <RotateCcw size={12} />
+        </button>
+      </div>
+
+      {/* Document render area */}
+      <div
+        style={{
+          flex: 1,
+          overflow: 'auto',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 8,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          padding: 8,
+        }}
+      >
+        {isPdf ? (
+          <iframe
+            src={objectUrl}
+            title="Document Preview"
+            style={{
+              width: '100%',
+              minHeight: 480,
+              border: 'none',
+              borderRadius: 4,
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top center',
+            }}
+          />
+        ) : isImage ? (
+          <img
+            src={objectUrl}
+            alt="Document preview"
+            style={{
+              maxWidth: '100%',
+              height: 'auto',
+              borderRadius: 4,
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top center',
+              display: 'block',
+            }}
+          />
+        ) : (
+          <div style={{ color: 'var(--text-muted)', padding: 24, fontSize: 'var(--text-sm)' }}>
+            Preview not available for this file type.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Verification() {
-  const { addToast, activeRecord, landRecords, activeProcessResult } = useApp();
+  const { addToast, activeRecord, landRecords, activeProcessResult, activeDocumentFile, setActiveProcessResult, setActiveDocumentFile } = useApp();
+  const navigate = useNavigate();
 
   // Find active land record
   const currentRecord = landRecords.find(r => r.id === activeRecord) || landRecords[0];
@@ -34,61 +159,61 @@ export default function Verification() {
           label: 'District (जिल्हा)',
           value: activeProcessResult.record.district?.value || '—',
           confidence: Math.round((activeProcessResult.record.district?.confidence || 0.95) * 100),
-          status: 'auto',
+          status: 'accepted' as const,
         },
         {
           fieldId: 'taluka',
           label: 'Taluka / Tehsil (तालुका)',
           value: activeProcessResult.record.taluka?.value || '—',
           confidence: Math.round((activeProcessResult.record.taluka?.confidence || 0.95) * 100),
-          status: 'auto',
+          status: 'accepted' as const,
         },
         {
           fieldId: 'village',
           label: 'Village (गाव)',
           value: activeProcessResult.record.village?.value || '—',
           confidence: Math.round((activeProcessResult.record.village?.confidence || 0.95) * 100),
-          status: 'auto',
+          status: 'accepted' as const,
         },
         {
           fieldId: 'survey_number',
           label: 'Survey Number (गट क्रमांक)',
           value: activeProcessResult.record.survey_number?.value || '—',
           confidence: Math.round((activeProcessResult.record.survey_number?.confidence || 0.90) * 100),
-          status: 'auto',
+          status: 'accepted' as const,
         },
         {
           fieldId: 'owner_name',
           label: 'Owner Name (खातेदाराचे नाव)',
           value: activeProcessResult.record.owner_name?.value || '—',
           confidence: Math.round((activeProcessResult.record.owner_name?.confidence || 0.90) * 100),
-          status: 'auto',
+          status: 'accepted' as const,
         },
         {
           fieldId: 'land_holding_type',
           label: 'Land Holding Type (धारण प्रकार)',
           value: activeProcessResult.record.land_holding_type?.value || '—',
           confidence: Math.round((activeProcessResult.record.land_holding_type?.confidence || 0.90) * 100),
-          status: 'auto',
+          status: 'accepted' as const,
         },
         {
           fieldId: 'area',
           label: 'Area (क्षेत्रफल)',
           value: activeProcessResult.record.area?.value || '—',
           confidence: Math.round((activeProcessResult.record.area?.confidence || 0.85) * 100),
-          status: 'auto',
+          status: (Math.round((activeProcessResult.record.area?.confidence || 0.85) * 100) < 80 ? 'needs_review' : 'accepted') as FieldStatus,
         },
       ]
     : [
-        { fieldId: 'survey_no', label: 'Survey Number', value: currentRecord?.land?.surveyNumber || '124/3A', confidence: 99, status: 'accepted' },
-        { fieldId: 'khasra_no', label: 'Khasra Number', value: currentRecord?.land?.khasraNumber || 'K-4821', confidence: 97, status: 'accepted' },
-        { fieldId: 'khata_no', label: 'Khata Number', value: currentRecord?.land?.khataNumber || 'KH-29382', confidence: 96, status: 'auto' },
-        { fieldId: 'plot_area', label: 'Plot Area', value: `${currentRecord?.land?.plotArea || 2.48} ${currentRecord?.land?.areaUnit || 'ha'}`, confidence: 78, status: 'needs_review' },
-        { fieldId: 'village', label: 'Village', value: currentRecord?.location?.village || 'Pimpri', confidence: 99, status: 'accepted' },
-        { fieldId: 'tehsil', label: 'Tehsil', value: currentRecord?.location?.tehsil || 'Haveli', confidence: 99, status: 'accepted' },
-        { fieldId: 'district', label: 'District', value: currentRecord?.location?.district || 'Pune', confidence: 99, status: 'accepted' },
-        { fieldId: 'state', label: 'State', value: currentRecord?.location?.state || 'Maharashtra', confidence: 99, status: 'accepted' },
-        { fieldId: 'owner_name', label: 'Owner Name', value: currentRecord?.ownership?.ownerName || 'Rajendra Patil', confidence: 98, status: 'accepted' },
+        { fieldId: 'survey_no', label: 'Survey Number', value: currentRecord?.land?.surveyNumber || '124/3A', confidence: 99, status: 'accepted' as const },
+        { fieldId: 'khasra_no', label: 'Khasra Number', value: currentRecord?.land?.khasraNumber || 'K-4821', confidence: 97, status: 'accepted' as const },
+        { fieldId: 'khata_no', label: 'Khata Number', value: currentRecord?.land?.khataNumber || 'KH-29382', confidence: 96, status: 'accepted' as const },
+        { fieldId: 'plot_area', label: 'Plot Area', value: `${currentRecord?.land?.plotArea || 2.48} ${currentRecord?.land?.areaUnit || 'ha'}`, confidence: 78, status: 'needs_review' as const },
+        { fieldId: 'village', label: 'Village', value: currentRecord?.location?.village || 'Pimpri', confidence: 99, status: 'accepted' as const },
+        { fieldId: 'tehsil', label: 'Tehsil', value: currentRecord?.location?.tehsil || 'Haveli', confidence: 99, status: 'accepted' as const },
+        { fieldId: 'district', label: 'District', value: currentRecord?.location?.district || 'Pune', confidence: 99, status: 'accepted' as const },
+        { fieldId: 'state', label: 'State', value: currentRecord?.location?.state || 'Maharashtra', confidence: 99, status: 'accepted' as const },
+        { fieldId: 'owner_name', label: 'Owner Name', value: currentRecord?.ownership?.ownerName || 'Rajendra Patil', confidence: 98, status: 'accepted' as const },
       ];
 
   const [fieldStates, setFieldStates] = useState<Record<string, FieldStatus>>(
@@ -102,29 +227,37 @@ export default function Verification() {
   const selectedFieldData = initialFields.find(f => f.fieldId === selectedField);
   const needsReviewFields = initialFields.filter(f => fieldStates[f.fieldId] === 'needs_review' || f.confidence < 80);
 
-  const handleAction = useCallback((action: 'accept' | 'edit' | 'reject') => {
+  const handleAction = useCallback((action: 'edit' | 'flag' | 'save' | 'cancel') => {
     if (!selectedField) return;
-    if (action === 'accept') {
-      setFieldStates(prev => ({ ...prev, [selectedField]: 'accepted' }));
-      addToast('success', 'Field accepted.');
-      const next = initialFields.find(f => f.fieldId !== selectedField && fieldStates[f.fieldId] !== 'accepted');
-      if (next) setSelectedField(next.fieldId);
-    } else if (action === 'edit') {
+    if (action === 'edit') {
       setIsEditing(true);
       setEditValue(selectedFieldData?.value ?? '');
-    } else if (action === 'reject') {
-      setFieldStates(prev => ({ ...prev, [selectedField]: 'rejected' }));
-      addToast('info', 'Field rejected.');
+    } else if (action === 'flag') {
+      // Toggle between needs_review and accepted
+      const current = fieldStates[selectedField];
+      if (current === 'needs_review') {
+        setFieldStates(prev => ({ ...prev, [selectedField]: 'accepted' }));
+        addToast('success', 'Field marked as accepted.');
+      } else {
+        setFieldStates(prev => ({ ...prev, [selectedField]: 'needs_review' }));
+        addToast('info', 'Field flagged for review.');
+      }
+    } else if (action === 'save') {
+      setFieldStates(prev => ({ ...prev, [selectedField]: 'edited' }));
+      setIsEditing(false);
+      addToast('success', 'Field updated.');
+    } else if (action === 'cancel') {
+      setIsEditing(false);
     }
-  }, [selectedField, initialFields, fieldStates, selectedFieldData, addToast]);
+  }, [selectedField, fieldStates, selectedFieldData, addToast]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts: E = edit, F = flag for review, Escape = cancel edit
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === 'a' || e.key === 'A') handleAction('accept');
       if (e.key === 'e' || e.key === 'E') handleAction('edit');
-      if (e.key === 'r' || e.key === 'R') handleAction('reject');
+      if (e.key === 'f' || e.key === 'F') handleAction('flag');
+      if (e.key === 'Escape') handleAction('cancel');
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -167,10 +300,28 @@ export default function Verification() {
   const complexity = activeProcessResult?.complexity || currentRecord?.complexity;
   const rawPages = activeProcessResult?.pages || currentRecord?.rawPages;
 
+  const handleGoBack = () => {
+    setActiveProcessResult(null);
+    setActiveDocumentFile(null);
+    navigate('/app/documents');
+  };
+
   return (
     <div className="verification-workspace">
       {/* Top Banner: Pipeline & Route Metadata */}
       <div style={{ gridColumn: '1 / -1', marginBottom: 8, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        {/* Back button */}
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={handleGoBack}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-xs)', padding: '4px 10px', flexShrink: 0 }}
+          title="Go back to upload another document"
+        >
+          <ArrowLeft size={12} /> Upload Another Document
+        </button>
+
+        <div style={{ width: 1, height: 18, background: 'var(--border-color)', flexShrink: 0 }} />
+
         {getSourceBadge()}
         {complexity && (
           <span className={`badge ${complexity.classification === 'simple' ? 'badge-verified' : 'badge-review'}`}>
@@ -187,36 +338,15 @@ export default function Verification() {
         <div className="workspace-panel-header">
           <span className="workspace-panel-title">Source Document</span>
           <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-            {activeProcessResult?.filename || currentRecord?.documentId || '7_12_Extract.pdf'}
+            {activeProcessResult?.filename || activeDocumentFile?.name || currentRecord?.documentId || '7_12_Extract.pdf'}
           </span>
         </div>
         <div className="document-viewer-area" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Scanned document simulation */}
-          <div className="doc-sim" style={{ flex: 1, minHeight: 300 }}>
-            <div className="doc-sim-inner">
-              <div className="doc-header-row">
-                <div className="doc-stamp" />
-                <div>
-                  <div className="doc-title-line" style={{ width: 180 }} />
-                  <div className="doc-title-line" style={{ width: 140, marginTop: 4 }} />
-                </div>
-              </div>
-              <div className="doc-content-sim" style={{ marginTop: 24 }}>
-                {initialFields.map(f => (
-                  <div
-                    key={f.fieldId}
-                    className={`ocr-box-sim ${selectedField === f.fieldId ? 'active' : ''}`}
-                    style={{ margin: '8px 0', padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}
-                    onClick={() => setSelectedField(f.fieldId)}
-                  >
-                    <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--accent-green-bright)' }}>
-                      {f.label}: {f.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* Real Document Preview */}
+          <DocumentPreview
+            file={activeDocumentFile}
+            filename={activeProcessResult?.filename || currentRecord?.documentId}
+          />
 
           {/* Raw Collapsible Page OCR View */}
           {rawPages && rawPages.length > 0 && (
@@ -328,48 +458,77 @@ export default function Verification() {
                 </span>
               </div>
 
+              {/* Show edited value if field was modified */}
+              {fieldStates[selectedField!] === 'edited' && editValue && (
+                <div className="vap-row" style={{ marginTop: 4 }}>
+                  <span className="vap-row-label" style={{ color: 'var(--accent-gold)' }}>Edited to:</span>
+                  <span className="vap-row-value" style={{ fontWeight: 600, color: 'var(--accent-gold)' }}>
+                    {editValue}
+                  </span>
+                </div>
+              )}
+
               <div className="vap-confidence" style={{ margin: '12px 0' }}>
                 <Info size={12} style={{ color: 'var(--text-muted)' }} />
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
                   Confidence: {selectedFieldData.confidence}%
+                  {selectedFieldData.confidence >= 90 && (
+                    <span style={{ color: 'var(--status-verified)', marginLeft: 6 }}>● High confidence — auto-accepted</span>
+                  )}
                 </span>
               </div>
 
               {isEditing ? (
+                /* Edit mode */
                 <div className="vap-edit">
+                  <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
+                    Enter corrected value:
+                  </label>
                   <input
                     className="input"
                     value={editValue}
                     onChange={e => setEditValue(e.target.value)}
                     autoFocus
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleAction('save');
+                      if (e.key === 'Escape') handleAction('cancel');
+                    }}
                   />
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     <button
                       className="btn btn-primary btn-sm"
                       style={{ flex: 1 }}
-                      onClick={() => {
-                        setFieldStates(prev => ({ ...prev, [selectedField!]: 'edited' }));
-                        setIsEditing(false);
-                        addToast('success', 'Field updated.');
-                      }}
+                      onClick={() => handleAction('save')}
                     >
-                      Save
+                      <Check size={12} /> Save
                     </button>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(false)}>
-                      Cancel
+                    <button className="btn btn-secondary btn-sm" onClick={() => handleAction('cancel')}>
+                      <X size={12} /> Cancel
                     </button>
                   </div>
                 </div>
               ) : (
+                /* Default mode: Edit + optional Flag */
                 <div className="vap-actions" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                  <button className="vap-btn accept" onClick={() => handleAction('accept')} style={{ flex: 1 }}>
-                    <Check size={13} /> Accept <kbd>A</kbd>
+                  <button
+                    className="vap-btn edit"
+                    onClick={() => handleAction('edit')}
+                    style={{ flex: 1 }}
+                    title="Edit this field value (E)"
+                  >
+                    <Edit3 size={13} /> Edit Value <kbd>E</kbd>
                   </button>
-                  <button className="vap-btn edit" onClick={() => handleAction('edit')} style={{ flex: 1 }}>
-                    <Edit3 size={13} /> Edit <kbd>E</kbd>
-                  </button>
-                  <button className="vap-btn reject" onClick={() => handleAction('reject')} style={{ flex: 1 }}>
-                    <X size={13} /> Reject <kbd>R</kbd>
+                  <button
+                    className={`vap-btn ${fieldStates[selectedField!] === 'needs_review' ? 'accept' : 'reject'}`}
+                    onClick={() => handleAction('flag')}
+                    style={{ flex: 1 }}
+                    title="Flag this field for manual review (F)"
+                  >
+                    {fieldStates[selectedField!] === 'needs_review' ? (
+                      <><Check size={13} /> Mark OK <kbd>F</kbd></>
+                    ) : (
+                      <><AlertTriangle size={13} /> Flag <kbd>F</kbd></>
+                    )}
                   </button>
                 </div>
               )}

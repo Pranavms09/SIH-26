@@ -4,6 +4,8 @@ import { Upload, FileText, X, Check, Loader, Sparkles, Search, Wifi, WifiOff } f
 import { useApp } from '../lib/AppContext';
 import type { Document, LandRecord } from '../types';
 import { processDocumentApi, checkBackendHealthApi } from '../services/api';
+import { uploadDocumentToStorage, saveDocumentRecord } from '../services/firebaseService';
+import { isFirebaseConfigured } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
 
 const STATUS_LABEL: Record<Document['status'], string> = {
@@ -38,7 +40,7 @@ function formatFileSize(bytes: number) {
 }
 
 export default function Documents() {
-  const { addToast, documents, addDocument, addLandRecord, setActiveProcessResult, setActiveRecord } = useApp();
+  const { addToast, documents, addDocument, addLandRecord, setActiveProcessResult, setActiveRecord, setActiveDocumentFile } = useApp();
   const navigate = useNavigate();
   
   const [isDragging, setIsDragging] = useState(false);
@@ -217,6 +219,20 @@ export default function Documents() {
       addDocument(newDoc);
       addLandRecord(newLandRecord);
       setActiveRecord(recordId);
+      setActiveDocumentFile(fileToProcess);
+
+      // Non-blocking Firebase upload (does not delay navigation)
+      if (isFirebaseConfigured()) {
+        (async () => {
+          try {
+            const storageUrl = await uploadDocumentToStorage(fileToProcess, res.document_id);
+            await saveDocumentRecord(newDoc, newLandRecord, res, storageUrl);
+            addToast('success', '☁ Document saved to Firebase.');
+          } catch {
+            addToast('info', '⚠ Could not save to Firebase — stored locally only.');
+          }
+        })();
+      }
 
       setSelectedFiles([]);
       navigate('/app/verification');
