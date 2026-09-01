@@ -75,9 +75,27 @@
   padding: 120px var(--space-6) 60px;
   text-align: center;
   z-index: 1;
+  overflow: hidden;
+}
+
+/* Magic Rings Canvas Backdrop */
+.hero-rings-backdrop {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1400px;
+  height: 800px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+  overflow: hidden;
 }
 
 .hero-content {
+  position: relative;
+  z-index: 2;
   max-width: 800px;
   margin: 0 auto 60px;
 }
@@ -101,20 +119,22 @@
   line-height: 1.1;
   letter-spacing: -0.03em;
   margin-bottom: var(--space-6);
-  background: linear-gradient(180deg, #FFFFFF 0%, #A1A1A1 100%);
+  background: linear-gradient(180deg, #FFFFFF 20%, #E2E8F0 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.7));
 }
 
 .hero-desc {
   font-size: clamp(16px, 2vw, 20px);
-  color: var(--text-secondary);
+  color: #e2e8f0;
   line-height: 1.6;
   margin-bottom: var(--space-8);
   max-width: 680px;
   margin-left: auto;
   margin-right: auto;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
 }
 
 .hero-actions {

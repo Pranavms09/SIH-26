@@ -23,6 +23,7 @@ class TestAPIHybridIntegration(unittest.TestCase):
         self.client = TestClient(app)
 
         # Create a small valid 1x1 PNG file byte buffer for upload tests
+        # pyrefly: ignore [missing-import]
         from PIL import Image
         img_byte_arr = io.BytesIO()
         img = Image.new("RGB", (50, 50), color="white")

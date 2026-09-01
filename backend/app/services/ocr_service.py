@@ -1,6 +1,6 @@
+# pyrefly: ignore [missing-import]
 import pytesseract
 from pathlib import Path
-
 
 def extract_text(image_path: str, language: str = "eng") -> str:
     """
@@ -15,9 +15,9 @@ def extract_text(image_path: str, language: str = "eng") -> str:
         )
 
     text = pytesseract.image_to_string(
-    str(image_path),
-    lang=language,
-    config="--psm 6"
-)
+        str(image_path),
+        lang=language,
+        config="--psm 6",
+    )
 
-    return text.strip()
+    return text.strip()

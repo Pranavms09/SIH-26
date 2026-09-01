@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Database, Search, FileText } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import MagicRings from '../components/ui/MagicRings';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -75,6 +76,33 @@ export default function Landing() {
 
       {/* Hero Section */}
       <section className="hero-section">
+        {/* Magic Rings Dynamic Background */}
+        <div className="hero-rings-backdrop" aria-hidden="true">
+          <MagicRings
+            color="#ffffff"
+            colorTwo="#f8fafc"
+            ringCount={6}
+            speed={0.85}
+            attenuation={14}
+            lineThickness={2}
+            baseRadius={0.38}
+            radiusStep={0.11}
+            scaleRate={0.08}
+            opacity={0.8}
+            blur={0}
+            noiseAmount={0.03}
+            rotation={0}
+            ringGap={1.45}
+            fadeIn={0.7}
+            fadeOut={0.5}
+            followMouse={true}
+            mouseInfluence={0.25}
+            hoverScale={1.15}
+            parallax={0.05}
+            clickBurst={true}
+          />
+        </div>
+
         <div className="hero-content">
           <div className="hero-badge">AI-POWERED LAND RECORD INTELLIGENCE</div>
           <h1 className="hero-title">

@@ -144,7 +144,7 @@ export default function Documents() {
         addToast('success', `Document processed with ${actualSource.replace('_', ' ')}!`);
       }
 
-      const isVerified = res.validation?.status === 'valid' || res.validation?.status === 'verified';
+      const isVerified = res.validation?.status === 'valid';
 
       const newDoc: Document = {
         id: res.document_id,
