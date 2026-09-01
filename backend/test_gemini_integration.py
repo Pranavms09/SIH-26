@@ -1,5 +1,5 @@
 """
-Step 12: Comprehensive Integration Tests for Gemini 2.5 Flash Provider in BhuLekha.
+Step 12: Comprehensive Integration Tests for Gemini 2.5 Flash Provider in Doc2Digital.
 
 Covers:
 - Gemini configuration & default model (gemini-2.5-flash)
@@ -390,7 +390,7 @@ class TestGeminiIntegration(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["extraction"]["source"], "rule_based_ocr_fallback")
+        self.assertEqual(data["extraction"]["source"], "local_ocr")
         self.assertIn("fallback_reason", data["extraction"])
 
     # ── TEST 17: Provider Query Parameter Override ────────────────────────────

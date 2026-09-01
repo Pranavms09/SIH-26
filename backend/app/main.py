@@ -6,7 +6,7 @@ from app.api.process import router as process_router
 
 
 app = FastAPI(
-    title="BhuLekha API",
+    title="Doc2Digital API",
     description="Intelligent Land Record Digitization & Verification Platform",
     version="1.0.0"
 )
@@ -36,7 +36,7 @@ app.include_router(process_router)
 @app.get("/")
 def root():
     return {
-        "message": "Welcome to BhuLekha API",
+        "message": "Welcome to Doc2Digital API",
         "status": "running"
     }
 

@@ -1,5 +1,5 @@
 """
-AI Validation Service Adapter for BhuLekha.
+AI Validation Service Adapter for Doc2Digital.
 
 Connects AI Vision/Document extracted LandRecord objects (from Gemini 2.5 Flash or Groq Vision)
 to the existing authoritative validation pipeline (validation_service, reference_service, consistency_service).

@@ -1,4 +1,4 @@
-# BhuLekha Local NER Annotator
+# Doc2Digital Local NER Annotator
 
 Lightweight web-based annotation tool for converting raw OCR land-record outputs into validated ground-truth NER dataset entries.
 

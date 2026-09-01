@@ -1,5 +1,5 @@
 """
-Test suite for BhuLekha Local NER Annotation Workflow & Intelligent Pre-Annotation.
+Test suite for Doc2Digital Local NER Annotation Workflow & Intelligent Pre-Annotation.
 Verifies raw sample loading, pre-annotation suggestions generation, exact offset verification,
 overlap rejection, dataset appending/updating, manifest state transitions, and raw sample immutability.
 """

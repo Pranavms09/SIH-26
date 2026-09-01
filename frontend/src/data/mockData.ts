@@ -146,7 +146,7 @@ export const mockLandRecords: LandRecord[] = [
       { id: 'm-2', year: 1996, type: 'mutation', description: 'Ownership updated following inheritance.', officer: 'Smt. Lalita Patil', notes: 'Mutation No. 482' },
       { id: 'm-3', year: 2008, type: 'mutation', description: 'Record modified — area correction.', officer: 'Shri. Pramod Jadhav' },
       { id: 'm-4', year: 2017, type: 'transfer', description: 'Partial ownership transferred to son.', officer: 'Shri. Anil Shinde', notes: 'Gift Deed registered' },
-      { id: 'm-5', year: 2026, type: 'verification', description: 'Record digitally verified by BHUMI AI platform.', officer: 'System / Verification Officer Sunita Deshmukh' },
+      { id: 'm-5', year: 2026, type: 'verification', description: 'Record digitally verified by Doc2Digital platform.', officer: 'System / Verification Officer Sunita Deshmukh' }
     ],
     validation: [
       { id: 'v-1', rule: 'Survey number format valid', result: 'pass', message: 'Survey number 124/3A matches expected format.', source: 'Format Validator' },
@@ -196,7 +196,7 @@ export const mockLandRecords: LandRecord[] = [
     },
     mutation: [
       { id: 'm-1', year: 2009, type: 'partition', description: 'Partition deed registered.', officer: 'Shri. Vinayak More' },
-      { id: 'm-2', year: 2026, type: 'verification', description: 'Digitally verified.', officer: 'BHUMI AI / Mahesh Patil' },
+      { id: 'm-2', year: 2026, type: 'verification', description: 'Digitally verified.', officer: 'Doc2Digital / Mahesh Patil' }
     ],
     validation: [
       { id: 'v-1', rule: 'Survey number format valid', result: 'pass', message: 'Format valid.', source: 'Format Validator' },
@@ -244,7 +244,7 @@ export const mockLandRecords: LandRecord[] = [
     },
     mutation: [
       { id: 'm-1', year: 2015, type: 'registration', description: 'Patta issued.', officer: 'Thiru. R. Kannan' },
-      { id: 'm-2', year: 2026, type: 'verification', description: 'Digitally verified.', officer: 'BHUMI AI' },
+      { id: 'm-2', year: 2026, type: 'verification', description: 'Digitally verified.', officer: 'Doc2Digital' }
     ],
     validation: [
       { id: 'v-1', rule: 'Survey number format valid', result: 'pass', message: 'Format valid.', source: 'Format Validator' },
@@ -253,7 +253,7 @@ export const mockLandRecords: LandRecord[] = [
     ],
     createdAt: '2026-08-30T14:20:00Z',
     updatedAt: '2026-08-30T16:45:00Z',
-    verifiedBy: 'BHUMI AI Auto-Verification',
+    verifiedBy: 'Doc2Digital Auto-Verification',
     verifiedAt: '2026-08-30T16:45:00Z',
   },
 ];
@@ -307,9 +307,9 @@ export const mockErrorCategories = [
 
 export const mockAuditEvents: AuditEvent[] = [
   { id: 'ae-001', timestamp: '2026-08-31T10:42:00Z', actor: 'Sunita Deshmukh', actorRole: 'verification_officer', action: 'Verified survey number 124/3A', recordId: 'LR-MH-2026-018492', documentId: 'doc-002', details: 'Field accepted after manual review.', ipAddress: '10.0.1.42' },
-  { id: 'ae-002', timestamp: '2026-08-31T10:38:00Z', actor: 'BHUMI AI System', actorRole: 'data_operator', action: 'AI extraction completed', recordId: 'LR-MH-2026-018492', documentId: 'doc-002', details: '18 fields extracted. Confidence: 98.2%', ipAddress: '10.0.0.1' },
+  { id: 'ae-002', timestamp: '2026-08-31T10:38:00Z', actor: 'Doc2Digital System', actorRole: 'data_operator', action: 'AI extraction completed', recordId: 'LR-MH-2026-018492', documentId: 'doc-002', details: '18 fields extracted. Confidence: 98.2%', ipAddress: '10.0.0.1' },
   { id: 'ae-003', timestamp: '2026-08-31T10:35:00Z', actor: 'Rajesh Kumar', actorRole: 'data_operator', action: 'Document uploaded', documentId: 'doc-002', details: 'Khata_Register_Nashik_1994.pdf — 18 pages, 3.1 MB', ipAddress: '10.0.2.18' },
-  { id: 'ae-004', timestamp: '2026-08-31T10:33:00Z', actor: 'BHUMI AI System', actorRole: 'data_operator', action: 'OCR processing completed', documentId: 'doc-002', details: 'Marathi text recognized. 24 bounding boxes detected.', ipAddress: '10.0.0.1' },
+  { id: 'ae-004', timestamp: '2026-08-31T10:33:00Z', actor: 'Doc2Digital System', actorRole: 'data_operator', action: 'OCR processing completed', documentId: 'doc-002', details: 'Marathi text recognized. 24 bounding boxes detected.', ipAddress: '10.0.0.1' },
   { id: 'ae-005', timestamp: '2026-08-31T10:28:00Z', actor: 'Anil Sharma', actorRole: 'district_officer', action: 'Exported record to PDF', recordId: 'LR-MH-2026-018493', details: 'Export format: PDF/A — Archival', ipAddress: '10.0.3.88' },
   { id: 'ae-006', timestamp: '2026-08-31T09:55:00Z', actor: 'Kavita Bhor', actorRole: 'gis_analyst', action: 'GIS parcel boundary updated', recordId: 'LR-MH-2026-018492', details: 'Boundary synchronized with DILRMP GIS.', ipAddress: '10.0.4.11' },
   { id: 'ae-007', timestamp: '2026-08-31T09:12:00Z', actor: 'Sunita Deshmukh', actorRole: 'verification_officer', action: 'Rejected area field value', recordId: 'LR-MH-2026-018493', documentId: 'doc-006', details: 'AI value: 1.24 ha — Rejected. Correct value: 1.22 ha entered.', ipAddress: '10.0.1.42' },
@@ -325,13 +325,13 @@ export const mockIntegrations: Integration[] = [
 ];
 
 export const mockUsers: User[] = [
-  { id: 'u-001', name: 'Sunita Deshmukh', email: 'sunita.deshmukh@bhumi.gov.in', role: 'verification_officer', district: 'Pune', state: 'Maharashtra', lastActive: '2026-08-31T10:42:00Z', status: 'active' },
-  { id: 'u-002', name: 'Rajesh Kumar', email: 'rajesh.kumar@bhumi.gov.in', role: 'data_operator', district: 'Nashik', state: 'Maharashtra', lastActive: '2026-08-31T10:35:00Z', status: 'active' },
-  { id: 'u-003', name: 'Anil Sharma', email: 'anil.sharma@bhumi.gov.in', role: 'district_officer', district: 'Nagpur', state: 'Maharashtra', lastActive: '2026-08-31T09:28:00Z', status: 'active' },
-  { id: 'u-004', name: 'Kavita Bhor', email: 'kavita.bhor@bhumi.gov.in', role: 'gis_analyst', district: 'Pune', state: 'Maharashtra', lastActive: '2026-08-31T09:55:00Z', status: 'active' },
-  { id: 'u-005', name: 'Pradeep Mane', email: 'pradeep.mane@bhumi.gov.in', role: 'tehsil_officer', district: 'Solapur', state: 'Maharashtra', lastActive: '2026-08-30T17:20:00Z', status: 'active' },
-  { id: 'u-006', name: 'Rekha Nair', email: 'rekha.nair@bhumi.gov.in', role: 'auditor', state: 'Maharashtra', lastActive: '2026-08-31T08:00:00Z', status: 'active' },
-  { id: 'u-007', name: 'Vikram Singh', email: 'vikram.singh@bhumi.gov.in', role: 'administrator', lastActive: '2026-08-31T07:30:00Z', status: 'active' },
+  { id: 'u-001', name: 'Sunita Deshmukh', email: 'sunita.deshmukh@doc2digital.gov.in', role: 'verification_officer', district: 'Pune', state: 'Maharashtra', lastActive: '2026-08-31T10:42:00Z', status: 'active' },
+  { id: 'u-002', name: 'Rajesh Kumar', email: 'rajesh.kumar@doc2digital.gov.in', role: 'data_operator', district: 'Nashik', state: 'Maharashtra', lastActive: '2026-08-31T10:35:00Z', status: 'active' },
+  { id: 'u-003', name: 'Anil Sharma', email: 'anil.sharma@doc2digital.gov.in', role: 'district_officer', district: 'Nagpur', state: 'Maharashtra', lastActive: '2026-08-31T09:28:00Z', status: 'active' },
+  { id: 'u-004', name: 'Kavita Bhor', email: 'kavita.bhor@doc2digital.gov.in', role: 'gis_analyst', district: 'Pune', state: 'Maharashtra', lastActive: '2026-08-31T09:55:00Z', status: 'active' },
+  { id: 'u-005', name: 'Pradeep Mane', email: 'pradeep.mane@doc2digital.gov.in', role: 'tehsil_officer', district: 'Solapur', state: 'Maharashtra', lastActive: '2026-08-30T17:20:00Z', status: 'active' },
+  { id: 'u-006', name: 'Rekha Nair', email: 'rekha.nair@doc2digital.gov.in', role: 'auditor', state: 'Maharashtra', lastActive: '2026-08-31T08:00:00Z', status: 'active' },
+  { id: 'u-007', name: 'Vikram Singh', email: 'vikram.singh@doc2digital.gov.in', role: 'administrator', lastActive: '2026-08-31T07:30:00Z', status: 'active' },
 ];
 
 export const mockExtractedFields = [

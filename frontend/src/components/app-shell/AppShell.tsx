@@ -4,7 +4,7 @@ import { useApp } from '../../lib/AppContext';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import CommandPalette from './CommandPalette';
-import BhumiCopilot from '../copilot/BhumiCopilot';
+import Doc2DigitalCopilot from '../copilot/BhumiCopilot';
 import ToastContainer from '../ui/ToastContainer';
 
 export default function AppShell() {
@@ -33,7 +33,7 @@ export default function AppShell() {
 
       {/* Global overlays */}
       <CommandPalette />
-      <BhumiCopilot />
+      <Doc2DigitalCopilot />
       <ToastContainer />
     </div>
   );

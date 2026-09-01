@@ -1,8 +1,6 @@
 """
-Real Document Complexity Classification Experiment for BhuLekha.
-
-Evaluates the multi-signal complexity analyzer and router on both Simple and Complex 7/12 land records.
-Outputs explainable diagnostics, score breakdowns, and routing decisions without invoking Groq APIs.
+Real Document Complexity Classification Experiment for Doc2Digital.
+Evaluates deterministic 5-signal document complexity analyzer on real 7/12 land records.
 """
 
 import sys
@@ -18,7 +16,7 @@ from app.services.extraction_router import route_document
 
 def run_experiment():
     print("\n=======================================================")
-    print("      BHULEKHA DOCUMENT ROUTING EXPERIMENT (STEP 16D)  ")
+    print("      DOC2DIGITAL DOCUMENT ROUTING EXPERIMENT (STEP 16D) ")
     print("=======================================================\n")
 
     # -------------------------------------------------------------

@@ -39,7 +39,7 @@ def find_sample_file() -> Path:
 
 def run_live_hybrid_test():
     print("\n=======================================================")
-    print("  BHULEKHA END-TO-END HYBRID API INTEGRATION TEST      ")
+    print("  DOC2DIGITAL END-TO-END HYBRID API INTEGRATION TEST   ")
     print("=======================================================\n")
 
     client = TestClient(app)

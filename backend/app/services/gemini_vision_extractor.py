@@ -20,41 +20,53 @@ from app.services.gemini_service import (
 # Maximum document size allowed for Gemini API requests (20 MB)
 MAX_DOCUMENT_SIZE_BYTES = 20 * 1024 * 1024
 
-SYSTEM_PROMPT = """You are an expert document AI specializing in Maharashtra 7/12 (सातबारा उतारा) land records written in Marathi.
-Your task is to analyze the input document (PDF or page image) and extract 7 specific land record fields into structured JSON format.
+SYSTEM_PROMPT = """You are an expert document AI specializing in Indian land records (7/12 records / सातबारा उतारा, RoR, rights of record) in Marathi, Hindi, and Devanagari scripts.
+Your task is to visually analyze the document page/image and extract 7 specific land record fields into a single structured JSON object.
 
-CRITICAL INSTRUCTIONS:
-1. OUTPUT JSON ONLY — return a single valid JSON object, no markdown fences, no explanatory text, no preamble.
-2. PRESERVE MARATHI TEXT: Do NOT translate Marathi text to English. Output original Devanagari Marathi script exactly as visible (e.g. "बीड", "अंबाजोगाई", "विलासराव पाटील", "भोगवटादार वर्ग-1").
-3. DO NOT HALLUCINATE: If a field is unreadable or absent, set "value": null and "confidence": 0.0.
-4. VILLAGE vs PINCODE: Extract ONLY the village name (e.g., "अंबाजोगाई (रुरल)"). Separate and EXCLUDE pincodes or postal codes like "(560022)".
-5. SURVEY NUMBER: Extract the exact survey number / subdivision (भूमापन क्रमांक व उपविभाग) e.g. "312/2". Do not confuse with 10+ digit account numbers, barcode numbers, document IDs, or mobile numbers.
-6. LAND HOLDING TYPE: Look for "भू-धारणा पद्धती" field (e.g. "भोगवटादार वर्ग-1").
-7. OWNER NAME: Extract the primary land owner name(s) (खातेदाराचे नाव / भोगवटादाराचे नाव). If multiple owners exist in the document, provide the most prominent or first-listed primary owner only. Do NOT include witnesses, legal footnotes, mutation parties, officers, or deceased (मयत) ancestors unless they are the listed current owner.
-8. AREA: Extract land area exactly as written in Hectare.Are.Centiare format (e.g. "0.24.00"). Do NOT convert units or do arithmetic. If multiple rows exist, use the total area or the first listed row's area — do NOT merge or calculate.
-9. CONFIDENCE SCORES: Provide a visual extraction confidence score between 0.0 and 1.0 for each field.
-10. COMPLEX DOCUMENTS: This document may have multiple pages, rows, columns, tables, or co-owners. Extract the primary/most representative values. Do NOT leave fields empty when values are visible.
+CRITICAL VISUAL & EXTRACTION INSTRUCTIONS:
+1. VISUAL LAYOUT RECOGNITION: Analyze the actual document image visually. The document may contain printed Marathi/Devanagari, handwritten Marathi, irregular table grids, circled numbers, stamps, seals, handwritten corrections, and dense columnar structures.
+2. SEPARATE LABELS FROM VALUES: Do NOT extract field labels (such as "District / जिल्हा", "Taluka / तालुका", "Village / गाव", "Survey Number / गट/सर्व्हे क्रमांक", "Owner / खातेदार") as values. Find the actual value associated with or positioned near each label.
+3. PRESERVE MARATHI DEVANAGARI SCRIPT: Do NOT translate Devanagari text into English. Output the original script exactly as written in the record.
+4. DO NOT HALLUCINATE: If a field is missing or unreadable due to blur, fading, or damage, set "value": null and "confidence": 0.0. Accuracy is paramount.
+5. DISTRICT / TALUKA / VILLAGE: Locate the administrative header section. Extract the actual name of the District, Taluka/Tehsil, and Village (excluding postal pincodes).
+6. SURVEY NUMBER (गट/भूमापन क्रमांक): Extract the exact survey number / subdivision (e.g., "124/3"). Distinguish survey numbers from page numbers, mutation numbers, account/khata numbers, dates, or mobile numbers.
+7. LAND HOLDING TYPE (धारण प्रकार/पद्धती): Extract the tenure or holding class (e.g. "भोगवटादार वर्ग-1", "भोगवटादार वर्ग-2").
+8. OWNER NAME (खातेदाराचे नाव/भोगवटादार): Extract the current primary land owner's name. Distinguish land owners from witnesses, revenue officers, neighboring boundary owners, or deceased ancestors.
+9. AREA (क्षेत्रफळ): Extract the land area value (e.g. "0.24.00" in Hectare.Are.Centiare or equivalent). Distinguish land area from survey numbers, financial amounts, or dates.
+10. FIELD-LEVEL CONFIDENCE: Provide a realistic confidence score between 0.0 and 1.0 for each field based on visual clarity and readability (clear printed text = 0.9-1.0, legible handwriting = 0.7-0.85, ambiguous handwriting = 0.4-0.6, unreadable/missing = 0.0).
 """
 
-USER_PROMPT_TEMPLATE = """Analyze this Maharashtra 7/12 land record document and extract exactly these 7 fields as a single JSON object:
+USER_PROMPT_TEMPLATE = """Visually analyze this land record document and extract exactly these 7 fields as a single JSON object:
 
 {
-  "district": {"value": "<Marathi District Name after जिल्हा>", "confidence": 0.95},
-  "taluka": {"value": "<Marathi Taluka Name after तालुका>", "confidence": 0.95},
-  "village": {"value": "<Marathi Village Name after गाव, WITHOUT pincode>", "confidence": 0.95},
-  "survey_number": {"value": "<Survey/Subdivision Number e.g. 312/2>", "confidence": 0.90},
-  "land_holding_type": {"value": "<Land Holding Type from भू-धारणा पद्धती>", "confidence": 0.90},
-  "owner_name": {"value": "<Primary Owner Name in Marathi>", "confidence": 0.90},
-  "area": {"value": "<Area in H.A.CA format e.g. 0.24.00>", "confidence": 0.85}
+  "district": {"value": "<District Name in original script>", "confidence": 0.0},
+  "taluka": {"value": "<Taluka/Tehsil Name in original script>", "confidence": 0.0},
+  "village": {"value": "<Village Name in original script, WITHOUT pincode>", "confidence": 0.0},
+  "survey_number": {"value": "<Survey/Subdivision Number>", "confidence": 0.0},
+  "land_holding_type": {"value": "<Land Holding Type/Class>", "confidence": 0.0},
+  "owner_name": {"value": "<Primary Owner Name in original script>", "confidence": 0.0},
+  "area": {"value": "<Land Area>", "confidence": 0.0}
 }
 
 Rules:
-- Output ONLY the JSON object above. No other text.
-- If a field cannot be read, set "value" to null and "confidence" to 0.0.
-- NEVER translate Marathi to English.
-- NEVER include pincodes in village names.
-- NEVER confuse barcode/account/document IDs with survey numbers.
+- Output ONLY the JSON object. No explanations, no markdown code blocks outside JSON.
+- If a field cannot be visually read or is absent, set "value" to null and "confidence" to 0.0.
+- NEVER translate Devanagari text into English.
+- NEVER confuse field labels (e.g. "जिल्हा") with actual field values.
+- NEVER confuse barcode, mutation, or page numbers with survey numbers.
 """
+
+
+# Field alias mapping for robust schema matching across different Gemini JSON responses
+FIELD_ALIASES = {
+    "district": ["district", "district_name", "jilha", "जिल्हा"],
+    "taluka": ["taluka", "tehsil", "taluka_name", "tehsil_name", "तालुका"],
+    "village": ["village", "village_name", "gav", "gaon", "गाव"],
+    "survey_number": ["survey_number", "survey_no", "gat_number", "gat_no", "khasra_no", "khasra_number", "bhumapan_no", "भूमापन_क्रमांक", "गट_क्रमांक"],
+    "land_holding_type": ["land_holding_type", "holding_type", "tenure", "holding_class", "धारण_प्रकार", "भू_धारणा_पद्धती"],
+    "owner_name": ["owner_name", "owner", "owners", "owner_names", "primary_owner", "khatedar", "खातेदाराचे_नाव", "भोगवटादाराचे_नाव"],
+    "area": ["area", "land_area", "plot_area", "total_area", "क्षेत्रफळ"],
+}
 
 
 def validate_document_file(document_path: str) -> Path:
@@ -97,31 +109,59 @@ def clamp_confidence(confidence: Any) -> float:
         val = float(confidence)
         return max(0.0, min(1.0, val))
     except (ValueError, TypeError):
-        return 0.0
+        return 0.5
 
 
 def normalize_field_dict(field_data: Any) -> ExtractedField:
     """
     Normalize raw parsed JSON field data into an ExtractedField instance.
 
+    Handles:
+    - Dict with "value" and "confidence"
+    - Simple scalar values (string, float, int)
+    - Lists of strings or dicts (e.g. multiple owner names)
+    - Medium/low confidence retention (retains value even if confidence is 0.4 - 0.7)
+
     Args:
-        field_data (Any): Raw value or dict from parsed JSON.
+        field_data (Any): Raw value, list, or dict from parsed JSON.
 
     Returns:
         ExtractedField: Normalized ExtractedField object.
     """
+    if field_data is None:
+        return ExtractedField(value=None, confidence=0.0)
+
+    # Handle lists of items (e.g., list of owner names or dictionary objects)
+    if isinstance(field_data, list):
+        if not field_data:
+            return ExtractedField(value=None, confidence=0.0)
+        
+        extracted_vals = []
+        conf_sum = 0.0
+        for item in field_data:
+            norm_item = normalize_field_dict(item)
+            if norm_item.value:
+                extracted_vals.append(norm_item.value)
+                conf_sum += norm_item.confidence
+        
+        if extracted_vals:
+            joined_val = ", ".join(extracted_vals)
+            avg_conf = round(conf_sum / len(extracted_vals), 2)
+            return ExtractedField(value=joined_val, confidence=avg_conf)
+        return ExtractedField(value=None, confidence=0.0)
+
     if isinstance(field_data, dict):
-        raw_val = field_data.get("value")
-        raw_conf = field_data.get("confidence", 0.0)
+        raw_val = field_data.get("value") or field_data.get("name") or field_data.get("text")
+        raw_conf = field_data.get("confidence", 0.75 if raw_val else 0.0)
     else:
         raw_val = field_data
-        raw_conf = 0.8 if raw_val else 0.0
+        raw_conf = 0.75 if raw_val else 0.0
 
     if raw_val is None:
         return ExtractedField(value=None, confidence=0.0)
 
     val_str = str(raw_val).strip()
-    if not val_str or val_str.lower() in ("null", "none", "n/a", "unknown"):
+    if not val_str or val_str.lower() in ("null", "none", "n/a", "unknown", "—", "-"):
         return ExtractedField(value=None, confidence=0.0)
 
     conf = clamp_confidence(raw_conf)
@@ -136,7 +176,8 @@ def parse_gemini_json_response(response_text: str) -> Dict[str, Any]:
     - Pure JSON responses
     - Markdown-fenced JSON (```json ... ``` or ```text ... ```)
     - Code fences without language tag
-    - JSON embedded in surrounding explanation text (extracts first {...} block)
+    - Embedded JSON objects
+    - Unwrapping top-level wrapper keys (record, data, land_record, fields)
 
     Args:
         response_text (str): Raw string response from Gemini.
@@ -149,32 +190,34 @@ def parse_gemini_json_response(response_text: str) -> Dict[str, Any]:
     """
     cleaned = response_text.strip()
 
-    # Strip markdown code fencing if present (```json ... ``` or ```text ... ``` or ``` ... ```)
+    # Strip markdown code fencing if present
     if cleaned.startswith("```"):
         cleaned = re.sub(r"^```(?:json|text)?\s*", "", cleaned, flags=re.IGNORECASE)
         cleaned = re.sub(r"\s*```$", "", cleaned)
         cleaned = cleaned.strip()
 
-    # Try direct parse first
+    data = None
+    # Try direct parse
     try:
         data = json.loads(cleaned)
-        if isinstance(data, dict):
-            return data
     except json.JSONDecodeError:
-        pass
+        # Fallback: extract first {...} JSON object
+        match = re.search(r"\{[\s\S]*\}", cleaned)
+        if match:
+            try:
+                data = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                pass
 
-    # Fallback: extract first {...} JSON object from surrounding text
-    match = re.search(r"\{[\s\S]*\}", cleaned)
-    if match:
-        try:
-            data = json.loads(match.group(0))
-            if isinstance(data, dict):
-                return data
-        except json.JSONDecodeError:
-            pass
+    if isinstance(data, dict):
+        # Unwrap nested top-level wrapper keys if present
+        for wrapper_key in ("land_record", "record", "extracted_data", "data", "fields"):
+            if wrapper_key in data and isinstance(data[wrapper_key], dict):
+                return data[wrapper_key]
+        return data
 
     raise ValueError(
-        f"Failed to parse Gemini response as JSON. "
+        f"Failed to parse Gemini response as JSON dictionary. "
         f"Response preview: {response_text[:200]!r}"
     )
 
@@ -194,11 +237,6 @@ def extract_land_record_with_gemini(
 
     Returns:
         LandRecord: Validated Pydantic model with extracted Marathi fields and confidence scores.
-
-    Raises:
-        RuntimeError: If Gemini service is unconfigured or API fails.
-        FileNotFoundError: If document file does not exist.
-        ValueError: If file format/size is invalid or JSON parsing fails.
     """
     # 1. Validate document
     validate_document_file(document_path)
@@ -212,6 +250,8 @@ def extract_land_record_with_gemini(
 
     prompt = custom_prompt if custom_prompt else USER_PROMPT_TEMPLATE
 
+    print(f"[Gemini Vision Service] Calling gemini-2.5-flash for document: {document_path}")
+
     # 3. Call Gemini 2.5 Flash API via gemini_service
     raw_response = gemini_service.generate_gemini_completion(
         file_path=document_path,
@@ -222,10 +262,18 @@ def extract_land_record_with_gemini(
         max_tokens=2048,
     )
 
-    # 4. Parse JSON (handles markdown fences and embedded JSON)
+    print(f"[Gemini Vision Service] Raw Response Preview: {raw_response[:200]!r}")
+
+    # 4. Parse JSON
     parsed_json = parse_gemini_json_response(raw_response)
 
-    # 5. Normalize into LandRecord model fields
+    # Normalize keys in parsed_json (lowercase, stripped of underscores/spaces)
+    normalized_keys = {
+        re.sub(r"[\s_]+", "", str(k).lower()): v
+        for k, v in parsed_json.items()
+    }
+
+    # 5. Map fields using FIELD_ALIASES for robust schema extraction
     expected_fields = [
         "district",
         "taluka",
@@ -237,8 +285,23 @@ def extract_land_record_with_gemini(
     ]
 
     record_kwargs = {}
-    for field in expected_fields:
-        field_raw = parsed_json.get(field)
-        record_kwargs[field] = normalize_field_dict(field_raw)
+    matched_count = 0
+
+    for target_field in expected_fields:
+        field_raw = None
+        aliases = FIELD_ALIASES.get(target_field, [target_field])
+        
+        for alias in aliases:
+            clean_alias = re.sub(r"[\s_]+", "", alias.lower())
+            if clean_alias in normalized_keys:
+                field_raw = normalized_keys[clean_alias]
+                break
+
+        norm_field = normalize_field_dict(field_raw)
+        record_kwargs[target_field] = norm_field
+        if norm_field.value is not None:
+            matched_count += 1
+
+    print(f"[Gemini Vision Service] Extracted Non-Null Fields: {matched_count}/{len(expected_fields)}")
 
     return LandRecord(**record_kwargs)

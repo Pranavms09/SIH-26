@@ -1,5 +1,5 @@
 """
-Groq API Service Layer for BhuLekha.
+Groq API Service Layer for Doc2Digital.
 
 Provides isolated, secure access to Groq's Vision LLM capabilities for complex land-record extraction.
 Designed to fail gracefully without disrupting existing OCR or rule-based processing pipelines.

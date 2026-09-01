@@ -14,9 +14,16 @@ from app.services.consistency_service import (
 REVIEW_THRESHOLD = 0.80
 
 
+def is_missing_value(val):
+    if not val:
+        return True
+    s = str(val).strip()
+    return s == "" or s in ("—", "-", "null", "none", "N/A")
+
+
 def validate_survey_number(value):
 
-    if not value:
+    if is_missing_value(value):
         return {
             "status": "missing",
             "message": "Survey number was not extracted."
@@ -24,7 +31,7 @@ def validate_survey_number(value):
 
     pattern = r"^\d+(?:/\d+)?$"
 
-    if re.match(pattern, value):
+    if re.match(pattern, str(value).strip()):
         return {
             "status": "valid",
             "message": "Survey number format is valid."
@@ -38,7 +45,7 @@ def validate_survey_number(value):
 
 def validate_area(value):
 
-    if not value:
+    if is_missing_value(value):
         return {
             "status": "missing",
             "message": "Area was not extracted."
@@ -48,7 +55,7 @@ def validate_area(value):
     # hectare.are.centiare
     pattern = r"^\d+\.\d{2}\.\d{2}$"
 
-    if re.match(pattern, value):
+    if re.match(pattern, str(value).strip()):
         return {
             "status": "valid",
             "message": "Area format is valid."
@@ -62,7 +69,7 @@ def validate_area(value):
 
 def validate_required_field(name, field):
 
-    if not field.value:
+    if not field or is_missing_value(field.value):
         return {
             "status": "missing",
             "message": f"{name} was not extracted."

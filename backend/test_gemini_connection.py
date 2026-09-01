@@ -1,5 +1,5 @@
 """
-Gemini API Diagnostic Tool for BhuLekha (test_gemini_connection.py).
+Gemini API Diagnostic Tool for Doc2Digital (test_gemini_connection.py).
 
 Verifies GEMINI_API_KEY status and tests connection to Gemini 2.5 Flash (gemini-2.5-flash).
 Never prints or exposes the actual API key.
@@ -12,7 +12,7 @@ from app.services.gemini_service import get_gemini_service, _classify_gemini_err
 
 def check_gemini_connection():
     print("=" * 60)
-    print("BhuLekha — Gemini API Configuration Diagnostic")
+    print("Doc2Digital — Gemini API Configuration Diagnostic")
     print("=" * 60)
 
     key_present = is_gemini_configured()

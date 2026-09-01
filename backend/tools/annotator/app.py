@@ -1,5 +1,5 @@
 """
-FastAPI Local NER Annotation Web Server for BhuLekha.
+FastAPI Local NER Annotation Web Server for Doc2Digital.
 Provides endpoints and UI for human annotation of raw OCR samples.
 """
 
@@ -29,7 +29,7 @@ MANIFEST_PATH = RAW_DIR / "manifest.json"
 DATASET_PATH = BACKEND_DIR / "data" / "ner" / "land_records.jsonl"
 TEMPLATES_DIR = ANNOTATOR_DIR / "templates"
 
-app = FastAPI(title="BhuLekha Local NER Annotator")
+app = FastAPI(title="Doc2Digital Local NER Annotator")
 
 
 def sanitize_document_id(doc_id: str) -> str:
@@ -374,7 +374,7 @@ async def save_annotation(payload: Dict[str, Any] = Body(...)):
 
 def main():
     print("\n=======================================================")
-    print("      BHULEKHA LOCAL NER ANNOTATION SERVER             ")
+    print("      DOC2DIGITAL LOCAL NER ANNOTATION SERVER          ")
     print("=======================================================")
     print("Running at: http://127.0.0.1:8000")
     print("Press Ctrl+C to stop.\n")

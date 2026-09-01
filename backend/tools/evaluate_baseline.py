@@ -1,5 +1,5 @@
 """
-Baseline evaluation system for BhuLekha rule-based land-record extractor.
+Baseline evaluation system for Doc2Digital rule-based land-record extractor.
 Compares ground truth NER annotations from land_records.jsonl against
 rule-based predictions from land_record_extractor.py.
 """
@@ -170,7 +170,7 @@ def evaluate_baseline(
 
     # 5. Print Baseline Evaluation Report
     print("\n==========================================")
-    print("       BHULEKHA BASELINE EVALUATION       ")
+    print("       DOC2DIGITAL BASELINE EVALUATION    ")
     print("==========================================")
     print(f"\nDataset examples: {num_examples}")
 

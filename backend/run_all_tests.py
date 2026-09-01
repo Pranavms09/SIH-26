@@ -1,5 +1,5 @@
 """
-Master test runner for BhuLekha backend pipelines, NER dataset, raw collection pipeline, annotator workflow, baseline evaluation, Groq Vision, and Gemini 2.5 Flash.
+Master test runner for Doc2Digital backend pipelines, NER dataset, raw collection pipeline, annotator workflow, baseline evaluation, Groq Vision, and Gemini 2.5 Flash.
 """
 
 import sys
@@ -11,7 +11,7 @@ if hasattr(sys.stderr, "reconfigure"):
 
 def run_all():
     print("\n=======================================================")
-    print("      BHULEKHA COMPLETE SYSTEM TEST SUITE              ")
+    print("      DOC2DIGITAL COMPLETE SYSTEM TEST SUITE           ")
     print("=======================================================\n")
 
     # 1. Generate initial dataset & validate

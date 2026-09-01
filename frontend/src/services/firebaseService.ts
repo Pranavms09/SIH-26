@@ -1,5 +1,5 @@
 /**
- * Firebase service helpers for BhuLekha.
+ * Firebase service helpers for Doc2Digital.
  * Handles uploading documents to Firebase Storage and saving metadata to Firestore.
  * All functions gracefully no-op if Firebase is not configured.
  */
@@ -9,8 +9,8 @@ import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, storage, isFirebaseConfigured } from '../lib/firebase';
 import type { Document, LandRecord, ProcessResponse } from '../types';
 
-/** Firestore collection name for all BhuLekha documents */
-const COLLECTION = 'bhulekha_documents';
+/** Firestore collection name for all Doc2Digital documents */
+const COLLECTION = 'doc2digital_documents';
 
 /**
  * Uploads a file to Firebase Storage under documents/{documentId}/original.{ext}
@@ -21,7 +21,7 @@ export async function uploadDocumentToStorage(
   documentId: string
 ): Promise<string | null> {
   if (!isFirebaseConfigured() || !storage) {
-    console.info('[BhuLekha Firebase] Storage not configured — skipping upload.');
+    console.info('[Doc2Digital Firebase] Storage not configured — skipping upload.');
     return null;
   }
 
@@ -30,10 +30,10 @@ export async function uploadDocumentToStorage(
     const storageRef = ref(storage, `documents/${documentId}/original${ext}`);
     const snapshot = await uploadBytes(storageRef, file);
     const downloadUrl = await getDownloadURL(snapshot.ref);
-    console.info('[BhuLekha Firebase] File uploaded to Storage:', downloadUrl);
+    console.info('[Doc2Digital Firebase] File uploaded to Storage:', downloadUrl);
     return downloadUrl;
   } catch (err) {
-    console.warn('[BhuLekha Firebase] Storage upload failed:', err);
+    console.warn('[Doc2Digital Firebase] Storage upload failed:', err);
     return null;
   }
 }
@@ -49,7 +49,7 @@ export async function saveDocumentRecord(
   storageUrl: string | null
 ): Promise<boolean> {
   if (!isFirebaseConfigured() || !db) {
-    console.info('[BhuLekha Firebase] Firestore not configured — skipping save.');
+    console.info('[Doc2Digital Firebase] Firestore not configured — skipping save.');
     return false;
   }
 
@@ -103,10 +103,10 @@ export async function saveDocumentRecord(
       documentId: processResult.document_id,
     });
 
-    console.info('[BhuLekha Firebase] Document saved to Firestore:', document.id);
+    console.info('[Doc2Digital Firebase] Document saved to Firestore:', document.id);
     return true;
   } catch (err) {
-    console.warn('[BhuLekha Firebase] Firestore write failed:', err);
+    console.warn('[Doc2Digital Firebase] Firestore write failed:', err);
     return false;
   }
 }

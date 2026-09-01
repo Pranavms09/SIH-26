@@ -1,5 +1,5 @@
 """
-Extraction Router Service for BhuLekha.
+Extraction Router Service for Doc2Digital.
 
 Determines whether a document should be routed to Path A (Fast, local rule-based OCR)
 or Path B (Groq Vision LLM API) using explainable multi-signal complexity scores.

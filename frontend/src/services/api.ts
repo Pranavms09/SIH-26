@@ -24,7 +24,7 @@ export async function processDocumentApi(file: File, provider: string = 'gemini'
       body: formData,
     });
   } catch (err: any) {
-    throw new Error('Backend server is unavailable. Please start the BhuLekha backend.');
+    throw new Error('Backend server is unavailable. Please start the Doc2Digital backend.');
   }
 
   if (!response.ok) {

@@ -1,5 +1,5 @@
 """
-Dataset validator for BhuLekha Land Record NER JSONL dataset.
+Dataset validator for Doc2Digital Land Record NER JSONL dataset.
 Validates syntax, schemas, character boundaries, entity labels, and span overlaps.
 """
 

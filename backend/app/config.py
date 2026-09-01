@@ -1,5 +1,5 @@
 """
-Centralized Configuration Module for BhuLekha Backend.
+Centralized Configuration Module for Doc2Digital Backend.
 Handles environment variables safely using dotenv, providing defaults and status checks.
 """
 

@@ -1,5 +1,5 @@
 /**
- * Firebase initialization for BhuLekha
+ * Firebase initialization for Doc2Digital
  * 
  * Set the following env vars in frontend/.env to enable:
  *   VITE_FIREBASE_API_KEY
@@ -44,7 +44,7 @@ if (isFirebaseConfigured()) {
     _db = getFirestore(app);
     _storage = getStorage(app);
   } catch (err) {
-    console.warn('[BhuLekha Firebase] Failed to initialize Firebase:', err);
+    console.warn('[Doc2Digital Firebase] Failed to initialize Firebase:', err);
   }
 }
 

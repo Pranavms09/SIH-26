@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useApp } from '../../lib/AppContext';
+import Doc2DigitalLogo from '../ui/Doc2DigitalLogo';
 import {
   LayoutDashboard, FileStack, Cpu, ShieldCheck, ScrollText,
   Map, BarChart3, ClipboardList, Plug, ChevronLeft, ChevronRight,
@@ -39,15 +40,11 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="sidebar-brand">
         <div className="sidebar-logo">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M11 2L3 7.5V15.5L11 21L19 15.5V7.5L11 2Z" stroke="#4a7c59" strokeWidth="1.5" fill="none" />
-            <path d="M11 6L6 9.5V14.5L11 18L16 14.5V9.5L11 6Z" fill="rgba(74,124,89,0.2)" stroke="#4a7c59" strokeWidth="1" />
-            <circle cx="11" cy="12" r="2" fill="#4a7c59" />
-          </svg>
+          <Doc2DigitalLogo size={20} color="#5a9e6f" />
         </div>
         {!sidebarCollapsed && (
           <div className="sidebar-brand-text">
-            <span className="sidebar-brand-name">BHUMI AI</span>
+            <span className="sidebar-brand-name">Doc2Digital</span>
             <span className="sidebar-brand-tagline">LAND INTELLIGENCE</span>
           </div>
         )}

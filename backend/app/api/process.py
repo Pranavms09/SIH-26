@@ -216,6 +216,11 @@ async def process_document(
     # 7.1. Complexity Analysis & Extraction Routing
     # --------------------------------
 
+    from app.services.document_complexity_service import (
+        MIN_LOCAL_EXTRACTION_COVERAGE,
+        ENABLE_VISION_ESCALATION,
+    )
+
     full_ocr_text = "\n".join(p.get("text", "") for p in pages)
     routing_result = route_document(
         ocr_text=full_ocr_text,
@@ -226,24 +231,44 @@ async def process_document(
 
     selected_route = routing_result.get("route", "ocr")
     complexity = routing_result.get("complexity", {})
+    coverage = complexity.get("extraction_coverage", 0.0)
 
     extraction_metadata = {
-        "source": "rule_based_ocr",
+        "source": "local_ocr",
         "route": selected_route,
+        "extraction_coverage": coverage,
     }
 
+    # --------------------------------
+    # 7.1b. Post-OCR Escalation Check
+    # --------------------------------
+    escalated = False
+    if ENABLE_VISION_ESCALATION and selected_route in ("ocr", "simple") and coverage < MIN_LOCAL_EXTRACTION_COVERAGE:
+        selected_route = "gemini"
+        escalated = True
+        extraction_metadata["route"] = "local_escalated_to_gemini"
+        extraction_metadata["escalation_reason"] = f"low_extraction_coverage ({coverage:.0%})"
+
+    # Structured observability logging for debugging
+    print(f"[Doc2Digital Pipeline] Document: {file.filename}")
+    print(f"[Doc2Digital Pipeline] Complexity: {complexity.get('classification', '').upper()} (Score: {complexity.get('score', 0.0)})")
+    print(f"[Doc2Digital Pipeline] Local Extraction Coverage: {coverage:.0%}")
+    if escalated:
+        print(f"[Doc2Digital Pipeline] Escalation Triggered: Local OCR -> Gemini Vision (Reason: {extraction_metadata.get('escalation_reason')})")
+    print(f"[Doc2Digital Pipeline] Final Target Route: {selected_route}")
 
     # --------------------------------
     # 7.2. Hybrid Route Execution (Multi-Provider AI Architecture)
     # --------------------------------
 
-    if selected_route in ("groq", "gemini", "ai"):
+    if selected_route in ("groq", "gemini", "ai", "local_escalated_to_gemini"):
         requested_provider = (provider or get_primary_ai_provider()).lower()
         ai_success = False
 
         image_target = str(cropped_record_path) if cropped_record_path.exists() else first_image_path
         pdf_target = str(file_path) if extension == ".pdf" else None
-        gemini_target = pdf_target or image_target
+        # For Gemini Vision: ALWAYS pass the FULL uncropped original document file/page image
+        gemini_target = pdf_target or first_image_path
 
         # Option A: Try Gemini 2.5 Flash as Primary Provider (supports PDF directly)
         if requested_provider == "gemini" or (requested_provider != "groq" and is_gemini_configured()):
@@ -255,7 +280,10 @@ async def process_document(
                 record = gemini_record
                 validation = ai_val_payload.get("validation", {})
                 extraction_metadata["source"] = "gemini_vision"
-                extraction_metadata["route"] = "gemini"
+                if escalated:
+                    extraction_metadata["route"] = "local_escalated_to_gemini"
+                else:
+                    extraction_metadata["route"] = "gemini"
                 ai_success = True
             except Exception as gemini_err:
                 safe_reason = _classify_gemini_error(str(gemini_err))
@@ -286,7 +314,7 @@ async def process_document(
                 or extraction_metadata.get("groq_error")
                 or "No AI provider configured"
             )
-            extraction_metadata["source"] = "rule_based_ocr_fallback"
+            extraction_metadata["source"] = "local_ocr"
             extraction_metadata["fallback_reason"] = fallback_reason
 
 

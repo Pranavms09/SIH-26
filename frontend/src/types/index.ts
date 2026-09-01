@@ -1,4 +1,4 @@
-// Core type definitions for BHUMI AI platform
+// Core type definitions for Doc2Digital platform
 
 export type DocumentStatus =
   | 'pending'

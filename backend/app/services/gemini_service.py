@@ -1,5 +1,5 @@
 """
-Gemini 2.5 Flash API Service Layer for BhuLekha.
+Gemini 2.5 Flash API Service Layer for Doc2Digital.
 
 Provides isolated, secure access to Google Gemini 2.5 Flash LLM capabilities for complex land-record extraction.
 Supports PDF documents directly (application/pdf) as well as page images (image/png, image/jpeg, image/webp).
@@ -197,11 +197,14 @@ class GeminiService:
             raise ValueError("Prompt cannot be empty.")
 
         mime_type, base64_data = encode_file_for_gemini(file_path)
+        file_size_kb = Path(file_path).stat().st_size / 1024.0
 
         # Build combined prompt text
         full_text_prompt = prompt
         if system_prompt:
             full_text_prompt = f"{system_prompt}\n\n{prompt}"
+
+        print(f"[Gemini API] Request sent to model '{self.model}' | MIME: {mime_type} | File: {file_path} ({file_size_kb:.1f} KB)")
 
         # Strategy 1: Try official SDK if client is initialized
         if self._genai_client is not None:
@@ -229,9 +232,10 @@ class GeminiService:
                     config=config,
                 )
                 if response and response.text:
+                    print(f"[Gemini API] SDK response received ({len(response.text)} chars)")
                     return response.text
             except Exception as sdk_err:
-                # If SDK call fails, fall back to direct HTTP API call
+                print(f"[Gemini API] SDK call attempt error: {sdk_err}. Trying HTTP REST fallback...")
                 pass
 
         # Strategy 2: Direct REST API call via urllib.request (bulletproof stdlib implementation)

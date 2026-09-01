@@ -4,6 +4,7 @@ import { ArrowRight, ShieldCheck, Database, Search, FileText } from 'lucide-reac
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import MagicRings from '../components/ui/MagicRings';
+import Doc2DigitalLogo from '../components/ui/Doc2DigitalLogo';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -53,14 +54,10 @@ export default function Landing() {
         <div className="landing-nav-inner">
           <div className="sidebar-brand" style={{ border: 'none', padding: 0 }}>
             <div className="sidebar-logo">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M11 2L3 7.5V15.5L11 21L19 15.5V7.5L11 2Z" stroke="#4a7c59" strokeWidth="1.5" fill="none" />
-                <path d="M11 6L6 9.5V14.5L11 18L16 14.5V9.5L11 6Z" fill="rgba(74,124,89,0.2)" stroke="#4a7c59" strokeWidth="1" />
-                <circle cx="11" cy="12" r="2" fill="#4a7c59" />
-              </svg>
+              <Doc2DigitalLogo size={20} color="#5a9e6f" />
             </div>
             <div className="sidebar-brand-text">
-              <span className="sidebar-brand-name">BHUMI AI</span>
+              <span className="sidebar-brand-name">Doc2Digital</span>
             </div>
           </div>
           <div className="landing-nav-links">
@@ -109,7 +106,7 @@ export default function Landing() {
             Turn legacy land records into trusted digital data.
           </h1>
           <p className="hero-desc">
-            BHUMI AI uses OCR, Computer Vision, NLP and intelligent validation to transform scanned, handwritten and historical land records into accurate, searchable and interoperable digital records.
+            Doc2Digital uses OCR, Computer Vision, NLP and intelligent validation to transform scanned, handwritten and historical land records into accurate, searchable and interoperable digital records.
           </p>
           <div className="hero-actions">
             <button className="btn btn-primary btn-lg" onClick={() => navigate('/app/overview')}>
@@ -218,7 +215,7 @@ export default function Landing() {
       <section className="cta-section scroll-fade">
         <div className="cta-box glass">
           <h2>Ready to digitize your jurisdiction?</h2>
-          <p>Experience the precision and speed of BHUMI AI.</p>
+          <p>Experience the precision and speed of Doc2Digital.</p>
           <button className="btn btn-primary btn-lg" onClick={() => navigate('/app/overview')}>
             Enter Platform <ArrowRight size={16} />
           </button>
@@ -230,17 +227,14 @@ export default function Landing() {
         <div className="landing-footer-inner">
           <div className="sidebar-brand" style={{ border: 'none', padding: 0 }}>
             <div className="sidebar-logo">
-              <svg width="16" height="16" viewBox="0 0 22 22" fill="none">
-                <path d="M11 2L3 7.5V15.5L11 21L19 15.5V7.5L11 2Z" stroke="#4a7c59" strokeWidth="1.5" fill="none" />
-                <circle cx="11" cy="12" r="2" fill="#4a7c59" />
-              </svg>
+              <Doc2DigitalLogo size={18} color="#5a9e6f" />
             </div>
             <div className="sidebar-brand-text">
-              <span className="sidebar-brand-name">BHUMI AI</span>
+              <span className="sidebar-brand-name">Doc2Digital</span>
             </div>
           </div>
           <div className="footer-links">
-            <span>© 2026 BHUMI AI GovTech. All rights reserved.</span>
+            <span>© 2026 Doc2Digital GovTech. All rights reserved.</span>
           </div>
         </div>
       </footer>

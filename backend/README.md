@@ -1,12 +1,12 @@
-# BhuLekha Backend & Hybrid Extraction Architecture
+# Doc2Digital Backend & Hybrid Extraction Architecture
 
-BhuLekha is an intelligent Maharashtra 7/12 land-record digitization, OCR, extraction, and verification system built with FastAPI, OpenCV, PyMuPDF, Tesseract OCR, and Gemini 2.5 Flash / Groq Vision integration.
+Doc2Digital is an intelligent Maharashtra 7/12 land-record digitization, OCR, extraction, and verification system built with FastAPI, OpenCV, PyMuPDF, Tesseract OCR, and Gemini 2.5 Flash / Groq Vision integration.
 
 ## ⚙️ Prerequisites & Installation
 
 ### 1. System Dependencies (Tesseract OCR)
 
-BhuLekha requires system-level Tesseract OCR with Marathi (`mar`) and English (`eng`) language packs for 7/12 document processing:
+Doc2Digital requires system-level Tesseract OCR with Marathi (`mar`) and English (`eng`) language packs for 7/12 document processing:
 
 ```bash
 sudo apt update
@@ -62,7 +62,7 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ## 🏛️ Hybrid Extraction Architecture
 
-BhuLekha combines local deterministic OCR rule-based extraction with Gemini 2.5 Flash / Groq Cloud Vision LLM extraction via an explainable multi-signal routing engine.
+Doc2Digital combines local deterministic OCR rule-based extraction with Gemini 2.5 Flash / Groq Cloud Vision LLM extraction via an explainable multi-signal routing engine.
 
 ```
                            Uploaded PDF/Image

@@ -105,6 +105,20 @@ class TestExtractionRouter(unittest.TestCase):
         _ = route_document(ocr_text="some text", record=self.simple_record, validation=val_dict)
         self.assertEqual(val_dict, val_copy)
 
+    def test_19_post_ocr_escalation_when_coverage_low(self):
+        """TEST 19: When Local OCR coverage is low (<50%), document triggers escalation."""
+        empty_record = LandRecord()  # 0/7 fields extracted
+        res = analyze_document_complexity(ocr_text="", record=empty_record)
+        self.assertLess(res.get("extraction_coverage", 1.0), 0.50)
+
+    def test_20_missing_fields_validation_needs_review(self):
+        """TEST 20: Empty/missing extracted fields trigger needs_review validation status."""
+        from app.services.validation_service import validate_land_record
+        empty_record = LandRecord()
+        val = validate_land_record(empty_record)
+        self.assertEqual(val["status"], "needs_review")
+        self.assertEqual(val["fields"]["district"]["status"], "missing")
+
 
 def run_tests():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestExtractionRouter)

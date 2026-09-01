@@ -22,7 +22,7 @@ from app.services.groq_service import GroqService
 
 def test_connection():
     print("\n=======================================================")
-    print("        BHULEKHA GROQ CONNECTIVITY TEST                ")
+    print("        DOC2DIGITAL GROQ CONNECTIVITY TEST             ")
     print("=======================================================\n")
 
     if not is_groq_configured():

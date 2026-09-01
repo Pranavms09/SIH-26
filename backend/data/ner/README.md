@@ -1,4 +1,4 @@
-# Land Record NER Dataset (BhuLekha)
+# Land Record NER Dataset (Doc2Digital)
 
 ## Overview & Purpose
 

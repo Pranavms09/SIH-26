@@ -23,7 +23,7 @@ interface Message {
   content: string;
 }
 
-export default function BhumiCopilot() {
+export default function Doc2DigitalCopilot() {
   const { copilotOpen, setCopilotOpen } = useApp();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -54,7 +54,7 @@ export default function BhumiCopilot() {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: '100%', opacity: 0 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          aria-label="BHUMI Copilot"
+          aria-label="Doc2Digital Copilot"
         >
           {/* Header */}
           <div className="copilot-header">
@@ -63,7 +63,7 @@ export default function BhumiCopilot() {
                 <BotMessageSquare size={15} />
               </div>
               <div>
-                <div className="copilot-title">BHUMI Copilot</div>
+                <div className="copilot-title">Doc2Digital Copilot</div>
                 <div className="copilot-subtitle">Contextual AI Assistant</div>
               </div>
             </div>

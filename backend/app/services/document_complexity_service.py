@@ -1,5 +1,5 @@
 """
-Document Complexity Analyzer Service for BhuLekha.
+Document Complexity Analyzer Service for Doc2Digital.
 
 Analyzes 7/12 land records using a multi-signal deterministic scoring system
 to classify document complexity without invoking machine learning models or external LLMs.
@@ -12,6 +12,11 @@ from app.models.land_record import LandRecord
 
 # Default complexity classification threshold
 DEFAULT_COMPLEXITY_THRESHOLD = 0.50
+
+# Configurable post-OCR escalation thresholds
+MIN_LOCAL_EXTRACTION_COVERAGE = 0.50  # Require at least 50% (4/7) fields for Local OCR to be accepted
+MIN_OCR_CONFIDENCE = 0.60             # Minimum OCR quality threshold
+ENABLE_VISION_ESCALATION = True       # Enable escalation to Gemini Vision when Local OCR coverage is insufficient
 
 # Key table & layout section indicators in Marathi 7/12 records
 TABLE_KEYWORDS = [
@@ -63,9 +68,10 @@ def analyze_document_complexity(
     total_score = 0.0
 
     # ------------------------------------------------------------------
-    # Signal 1: Rule-Based Extractor Field Completeness (Weight: 0.35)
+    # Signal 1: Rule-Based Extractor Field Completeness & Coverage (Weight: 0.35)
     # ------------------------------------------------------------------
     sig1_weight = 0.35
+    extraction_coverage = 0.0
     if record is not None:
         expected_fields = [
             record.district,
@@ -76,14 +82,18 @@ def analyze_document_complexity(
             record.owner_name,
             record.area,
         ]
-        extracted_count = sum(1 for f in expected_fields if f and f.value and str(f.value).strip())
+        extracted_count = sum(
+            1 for f in expected_fields
+            if f and f.value and str(f.value).strip() and str(f.value).strip() not in ("—", "-", "null", "none")
+        )
         missing_count = 7 - extracted_count
+        extraction_coverage = round(extracted_count / 7.0, 3)
 
         sig1_score = round((missing_count / 7.0) * sig1_weight, 3)
         total_score += sig1_score
 
         if missing_count > 0:
-            reasons.append(f"Rule-based extractor missed {missing_count} out of 7 expected fields.")
+            reasons.append(f"Rule-based extractor missed {missing_count} out of 7 expected fields (coverage: {extracted_count}/7).")
         else:
             reasons.append("All 7 expected fields were extracted cleanly by rule-based pipeline.")
 
@@ -91,12 +101,14 @@ def analyze_document_complexity(
             "score": sig1_score,
             "max_weight": sig1_weight,
             "details": f"{extracted_count}/7 fields extracted cleanly",
+            "coverage": extraction_coverage,
         }
     else:
         signals["field_completeness"] = {
             "score": 0.0,
             "max_weight": sig1_weight,
             "details": "Record model not provided",
+            "coverage": 0.0,
         }
 
     # ------------------------------------------------------------------
@@ -249,6 +261,7 @@ def analyze_document_complexity(
         "score": final_score,
         "threshold": threshold,
         "recommended_route": recommended_route,
+        "extraction_coverage": extraction_coverage,
         "signals": signals,
         "reasons": reasons,
     }

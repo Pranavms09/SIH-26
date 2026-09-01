@@ -1,7 +1,7 @@
 """
 Standalone Live Integration Test for Groq Vision Extractor Prototype.
 
-Sends a real BhuLekha page image to Groq Vision API, evaluates field accuracy against
+Sends a real Doc2Digital page image to Groq Vision API, evaluates field accuracy against
 known reference standards, and measures latency.
 
 Skips cleanly if GROQ_API_KEY is not configured.
@@ -55,7 +55,7 @@ def find_sample_image() -> Path:
 
 def run_live_test():
     print("\n=======================================================")
-    print("      BHULEKHA STEP 16B LIVE VISION EXTRACTION TEST    ")
+    print("      DOC2DIGITAL STEP 16B LIVE VISION EXTRACTION TEST ")
     print("=======================================================\n")
 
     if not is_groq_configured():

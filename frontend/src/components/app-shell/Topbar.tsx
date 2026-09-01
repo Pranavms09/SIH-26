@@ -48,7 +48,7 @@ export default function Topbar() {
 
   const pageTitle = (() => {
     const base = '/' + location.pathname.split('/').slice(1, 3).join('/');
-    return pageTitles[base] || 'BHUMI AI';
+    return pageTitles[base] || 'Doc2Digital';
   })();
 
   return (
@@ -102,8 +102,8 @@ export default function Topbar() {
         <button
           className={`topbar-btn ${copilotOpen ? 'active' : ''}`}
           onClick={() => setCopilotOpen(!copilotOpen)}
-          aria-label="BHUMI Copilot"
-          title="BHUMI Copilot"
+          aria-label="Doc2Digital Copilot"
+          title="Doc2Digital Copilot"
         >
           <BotMessageSquare size={15} />
         </button>

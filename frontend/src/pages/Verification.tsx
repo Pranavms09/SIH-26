@@ -151,57 +151,54 @@ export default function Verification() {
   // Find active land record
   const currentRecord = landRecords.find(r => r.id === activeRecord) || landRecords[0];
 
+  // Helper to safely format extracted field status and confidence
+  const getFieldProps = (fieldObj: { value?: string | null; confidence?: number } | undefined, defaultConf: number) => {
+    const rawVal = fieldObj?.value;
+    const strVal = rawVal ? String(rawVal).trim() : '';
+    const isMissing = !strVal || strVal === '—' || strVal === '-' || strVal === 'null' || strVal === 'none';
+    const val = isMissing ? '—' : strVal;
+    const conf = isMissing ? 0 : Math.round((fieldObj?.confidence ?? defaultConf) * 100);
+    const status: FieldStatus = isMissing ? 'needs_review' : (conf < 80 ? 'needs_review' : 'accepted');
+    return { value: val, confidence: conf, status };
+  };
+
   // Derive extracted fields from backend result or land record
   const initialFields: ExtractedField[] = activeProcessResult?.record
     ? [
         {
           fieldId: 'district',
           label: 'District (जिल्हा)',
-          value: activeProcessResult.record.district?.value || '—',
-          confidence: Math.round((activeProcessResult.record.district?.confidence || 0.95) * 100),
-          status: 'accepted' as const,
+          ...getFieldProps(activeProcessResult.record.district, 0.95),
         },
         {
           fieldId: 'taluka',
           label: 'Taluka / Tehsil (तालुका)',
-          value: activeProcessResult.record.taluka?.value || '—',
-          confidence: Math.round((activeProcessResult.record.taluka?.confidence || 0.95) * 100),
-          status: 'accepted' as const,
+          ...getFieldProps(activeProcessResult.record.taluka, 0.95),
         },
         {
           fieldId: 'village',
           label: 'Village (गाव)',
-          value: activeProcessResult.record.village?.value || '—',
-          confidence: Math.round((activeProcessResult.record.village?.confidence || 0.95) * 100),
-          status: 'accepted' as const,
+          ...getFieldProps(activeProcessResult.record.village, 0.95),
         },
         {
           fieldId: 'survey_number',
           label: 'Survey Number (गट क्रमांक)',
-          value: activeProcessResult.record.survey_number?.value || '—',
-          confidence: Math.round((activeProcessResult.record.survey_number?.confidence || 0.90) * 100),
-          status: 'accepted' as const,
+          ...getFieldProps(activeProcessResult.record.survey_number, 0.90),
         },
         {
           fieldId: 'owner_name',
           label: 'Owner Name (खातेदाराचे नाव)',
-          value: activeProcessResult.record.owner_name?.value || '—',
-          confidence: Math.round((activeProcessResult.record.owner_name?.confidence || 0.90) * 100),
-          status: 'accepted' as const,
+          ...getFieldProps(activeProcessResult.record.owner_name, 0.90),
         },
         {
           fieldId: 'land_holding_type',
           label: 'Land Holding Type (धारण प्रकार)',
-          value: activeProcessResult.record.land_holding_type?.value || '—',
-          confidence: Math.round((activeProcessResult.record.land_holding_type?.confidence || 0.90) * 100),
-          status: 'accepted' as const,
+          ...getFieldProps(activeProcessResult.record.land_holding_type, 0.90),
         },
         {
           fieldId: 'area',
           label: 'Area (क्षेत्रफल)',
-          value: activeProcessResult.record.area?.value || '—',
-          confidence: Math.round((activeProcessResult.record.area?.confidence || 0.85) * 100),
-          status: (Math.round((activeProcessResult.record.area?.confidence || 0.85) * 100) < 80 ? 'needs_review' : 'accepted') as FieldStatus,
+          ...getFieldProps(activeProcessResult.record.area, 0.85),
         },
       ]
     : [
@@ -269,6 +266,13 @@ export default function Verification() {
   const geminiError = activeProcessResult?.extraction?.gemini_error || currentRecord?.extractionMetadata?.gemini_error;
 
   const getSourceBadge = () => {
+    if (extractionRoute === 'local_escalated_to_gemini') {
+      return (
+        <span className="badge badge-verified" style={{ background: 'rgba(74, 124, 89, 0.2)', border: '1px solid #4a7c59' }}>
+          <Sparkles size={11} style={{ color: 'var(--accent-green-bright)' }} /> Processed with Gemini Vision (Escalated from Local OCR)
+        </span>
+      );
+    }
     if (extractionSource === 'gemini_vision' || extractionRoute === 'gemini') {
       return (
         <span className="badge badge-verified" style={{ background: 'rgba(74, 124, 89, 0.2)', border: '1px solid #4a7c59' }}>
@@ -329,7 +333,7 @@ export default function Verification() {
           </span>
         )}
         <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-          Record ID: <strong style={{ color: 'var(--text-primary)' }}>{currentRecord?.id || 'LR-BHULEKHA'}</strong>
+          Record ID: <strong style={{ color: 'var(--text-primary)' }}>{currentRecord?.id || 'LR-DOC2DIGITAL'}</strong>
         </span>
       </div>
 
@@ -471,9 +475,12 @@ export default function Verification() {
               <div className="vap-confidence" style={{ margin: '12px 0' }}>
                 <Info size={12} style={{ color: 'var(--text-muted)' }} />
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-                  Confidence: {selectedFieldData.confidence}%
-                  {selectedFieldData.confidence >= 90 && (
+                  Confidence: {selectedFieldData.value === '—' ? '—' : `${selectedFieldData.confidence}%`}
+                  {selectedFieldData.confidence >= 90 && selectedFieldData.value !== '—' && (
                     <span style={{ color: 'var(--status-verified)', marginLeft: 6 }}>● High confidence — auto-accepted</span>
+                  )}
+                  {selectedFieldData.value === '—' && (
+                    <span style={{ color: 'var(--status-review)', marginLeft: 6 }}>● Missing value — needs review</span>
                   )}
                 </span>
               </div>

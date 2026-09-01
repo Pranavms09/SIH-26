@@ -1,8 +1,8 @@
-# BhuLekha (भूलेख)
+# Doc2Digital (भूलेख)
 
 **Intelligent 7/12 Land Record Digitization, Complexity Routing & Authoritative Verification Platform**
 
-BhuLekha is an AI-powered land-record digitization and validation platform designed to extract structured information from scanned Maharashtra 7/12 (सातबारा) land records and other complex documents.
+Doc2Digital is an AI-powered land-record digitization and validation platform designed to extract structured information from scanned Maharashtra 7/12 (सातबारा) land records and other complex documents.
 
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
@@ -22,7 +22,7 @@ Scanned government land records, particularly Maharashtra 7/12 (सातबा�
 - **Multi-region table layouts** separating header metadata, ownership rights, and crop details.
 - **Complex co-ownership structures** and irregular survey/khasra land identifiers.
 
-BhuLekha solves these challenges through a hybrid architecture combining local deterministic computer vision and OCR preprocessing with an **explainable document complexity routing engine**. Simple documents are processed entirely locally with **0 AI API calls**, while complex documents are dynamically routed to **Gemini 2.5 Flash** (or **Groq Vision**). All extractions are passed through an authoritative rule-based validation engine before being presented in an interactive verification workspace.
+Doc2Digital solves these challenges through a hybrid architecture combining local deterministic computer vision and OCR preprocessing with an **explainable document complexity routing engine**. Simple documents are processed entirely locally with **0 AI API calls**, while complex documents are dynamically routed to **Gemini 2.5 Flash** (or **Groq Vision**). All extractions are passed through an authoritative rule-based validation engine before being presented in an interactive verification workspace.
 
 ---
 
@@ -96,7 +96,7 @@ If an AI provider request fails due to missing credentials (`GEMINI_API_KEY` unc
 
 ## 📊 Why Complexity Detection Exists
 
-The document complexity analyzer ([`document_complexity_service.py`](file:///home/pranavms09/Hackathons/BhuLekha/backend/app/services/document_complexity_service.py)) evaluates five local signals to prevent unnecessary API spending and latency:
+The document complexity analyzer ([`document_complexity_service.py`](backend/app/services/document_complexity_service.py)) evaluates five local signals to prevent unnecessary API spending and latency:
 
 1. **Field Completeness**: Ratio of required land fields successfully parsed by local OCR rules.
 2. **Validation Warnings**: Count of errors or warnings returned by `validation_service.py`.
@@ -155,7 +155,7 @@ The API outputs a structured `LandRecord` schema paired with field-level confide
 
 ## 🛡️ Validation Architecture
 
-In BhuLekha, **AI extractions are never automatically trusted**. Extracted records pass through the authoritative validation engine ([`validation_service.py`](file:///home/pranavms09/Hackathons/BhuLekha/backend/app/services/validation_service.py)):
+In Doc2Digital, **AI extractions are never automatically trusted**. Extracted records pass through the authoritative validation engine ([`validation_service.py`](backend/app/services/validation_service.py)):
 
 - **AI Confidence Score**: Measures model statistical certainty (e.g. `0.95`).
 - **Authoritative Rule Validation**: Checks logical domain rules:
@@ -171,7 +171,7 @@ In BhuLekha, **AI extractions are never automatically trusted**. Extracted recor
 ## 🔑 AI Provider Configuration
 
 ### 1. Gemini 2.5 Flash (Primary Provider)
-BhuLekha uses **Gemini 2.5 Flash** (`gemini-2.5-flash`) for complex document extraction. Configure credentials in `backend/.env`:
+Doc2Digital uses **Gemini 2.5 Flash** (`gemini-2.5-flash`) for complex document extraction. Configure credentials in `backend/.env`:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -211,7 +211,7 @@ GROQ_VISION_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
 ## 📁 Repository Structure
 
 ```
-BhuLekha/
+Doc2Digital/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
@@ -263,7 +263,7 @@ BhuLekha/
 
 ## 🚀 Local Development Setup
 
-Follow these instructions to run BhuLekha on a fresh Linux machine.
+Follow these instructions to run Doc2Digital on a fresh Linux machine.
 
 ### Prerequisites
 - **Linux OS** (Ubuntu 20.04+ / Debian recommended)
@@ -276,14 +276,14 @@ Follow these instructions to run BhuLekha on a fresh Linux machine.
 
 ```bash
 git clone https://github.com/Pranavms09/SIH-26.git
-cd BhuLekha
+cd Doc2Digital
 ```
 
 ---
 
 ### Step 2 — Install System OCR Prerequisites
 
-BhuLekha requires system-level Tesseract OCR with English and Marathi language packs:
+Doc2Digital requires system-level Tesseract OCR with English and Marathi language packs:
 
 ```bash
 sudo apt update
@@ -337,7 +337,7 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 Open a second terminal window:
 
 ```bash
-cd BhuLekha/frontend
+cd Doc2Digital/frontend
 
 # Install Node dependencies
 npm install
@@ -444,7 +444,7 @@ python run_all_tests.py
 > **Never commit API keys or `.env` files to version control.**
 
 - **Server-Side API Credentials**: `GEMINI_API_KEY` and `GROQ_API_KEY` are accessed exclusively by backend services. API keys are never bundled into frontend assets or sent to client browsers.
-- **Git Protections**: Root [.gitignore](file:///home/pranavms09/Hackathons/BhuLekha/.gitignore) explicitly excludes `.env`, `venv/`, `node_modules/`, `dist/`, uploaded documents in `uploads/`, and temporary processing caches.
+- **Git Protections**: Root [.gitignore](.gitignore) explicitly excludes `.env`, `venv/`, `node_modules/`, `dist/`, uploaded documents in `uploads/`, and temporary processing caches.
 
 ---
 
@@ -485,7 +485,7 @@ pip install -r requirements.txt
 ```
 
 ### Gemini API Not Configured
-If `GEMINI_API_KEY` is unconfigured, BhuLekha automatically displays a warning toast in the frontend and falls back to local OCR processing without crashing.
+If `GEMINI_API_KEY` is unconfigured, Doc2Digital automatically displays a warning toast in the frontend and falls back to local OCR processing without crashing.
 
 ### Frontend Cannot Connect to Backend
 - Ensure backend server is running on `http://127.0.0.1:8000`.
