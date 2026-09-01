@@ -1,4 +1,4 @@
-# Doc2Digital (भूलेख)
+# Doc2Digital
 
 **Intelligent 7/12 Land Record Digitization, Complexity Routing & Authoritative Verification Platform**
 
