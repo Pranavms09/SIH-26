@@ -283,11 +283,13 @@ export interface BackendValidation {
 }
 
 export interface ExtractionMetadata {
-  source: 'gemini_vision' | 'groq_vision' | 'rule_based_ocr' | 'rule_based_ocr_fallback';
-  route: 'gemini' | 'groq' | 'ocr' | 'ai';
+  source: 'gemini_vision' | 'groq_vision' | 'rule_based_ocr' | 'rule_based_ocr_fallback' | 'local_ocr';
+  route: 'gemini' | 'groq' | 'ocr' | 'ai' | 'simple' | 'local_escalated_to_gemini';
   gemini_error?: string;
   groq_error?: string;
   fallback_reason?: string;
+  escalation_reason?: string;
+  extraction_coverage?: number;
 }
 
 export interface BackendComplexity {

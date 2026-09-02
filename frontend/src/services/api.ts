@@ -1,6 +1,6 @@
 import type { ProcessResponse } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 export async function checkBackendHealthApi(): Promise<boolean> {
   try {
@@ -9,6 +9,23 @@ export async function checkBackendHealthApi(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export async function uploadDocumentApi(file: File): Promise<{ message: string; original_filename: string; saved_filename: string; file_path: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const url = `${API_BASE_URL}/api/upload`;
+  const response = await fetch(url, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Upload error (${response.status})`);
+  }
+
+  return response.json();
 }
 
 export async function processDocumentApi(file: File, provider: string = 'gemini'): Promise<ProcessResponse> {
@@ -50,3 +67,4 @@ export async function processDocumentApi(file: File, provider: string = 'gemini'
   const data: ProcessResponse = await response.json();
   return data;
 }
+
