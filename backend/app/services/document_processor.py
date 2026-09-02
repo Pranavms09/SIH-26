@@ -7,7 +7,10 @@ except ImportError:
     except ImportError:
         pymupdf = None
 
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 
 
 def pdf_to_images(pdf_path: str, output_dir: str):
@@ -47,6 +50,8 @@ def preprocess_image(image_path: str, output_path: str):
     """
     Prepare document image for OCR.
     """
+    if cv2 is None:
+        raise RuntimeError("OpenCV (cv2) is not installed in the active environment. Run: pip install opencv-python-headless")
 
     image = cv2.imread(image_path)
 

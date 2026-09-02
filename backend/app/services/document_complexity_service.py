@@ -60,7 +60,14 @@ def analyze_document_complexity(
         threshold (float): Classification threshold (default 0.50).
 
     Returns:
-        Dict[str, Any]: Diagnostic payload containing classification, score, threshol    # ------------------------------------------------------------------
+        Dict[str, Any]: Diagnostic payload containing classification, score, threshold,
+                       recommended_route, signals breakdown, and explainable reasons.
+    """
+    reasons: List[str] = []
+    signals: Dict[str, Dict[str, Any]] = {}
+    total_score = 0.0
+
+    # ------------------------------------------------------------------
     # Signal 1: Rule-Based Extractor Field Completeness & Coverage (Weight: 0.50)
     # ------------------------------------------------------------------
     sig1_weight = 0.50
@@ -89,6 +96,13 @@ def analyze_document_complexity(
             reasons.append(f"Rule-based extractor missed {missing_count} out of 7 expected fields (coverage: {extracted_count}/7).")
         else:
             reasons.append("All 7 expected fields were extracted cleanly by rule-based pipeline.")
+
+        signals["field_completeness"] = {
+            "score": sig1_score,
+            "max_weight": sig1_weight,
+            "details": f"{extracted_count}/7 fields extracted cleanly",
+            "coverage": extraction_coverage,
+        }
     else:
         signals["field_completeness"] = {
             "score": 0.0,
