@@ -1,5 +1,12 @@
 from pathlib import Path
-import pymupdf
+try:
+    import pymupdf
+except ImportError:
+    try:
+        import fitz as pymupdf
+    except ImportError:
+        pymupdf = None
+
 import cv2
 
 
@@ -7,6 +14,8 @@ def pdf_to_images(pdf_path: str, output_dir: str):
     """
     Convert every page of a PDF into a PNG image.
     """
+    if pymupdf is None:
+        raise RuntimeError("PyMuPDF / fitz is not installed in the active Python environment. Run: pip install PyMuPDF")
 
     pdf_path = Path(pdf_path)
     output_dir = Path(output_dir)
