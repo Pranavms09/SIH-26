@@ -325,12 +325,6 @@ export default function Verification() {
   const complexity = activeProcessResult?.complexity || currentRecord?.complexity;
   const rawPages = activeProcessResult?.pages || currentRecord?.rawPages;
 
-  const handleGoBack = () => {
-    setActiveProcessResult(null);
-    setActiveDocumentFile(null);
-    navigate('/app/documents');
-  };
-
   return (
     <div className="verification-workspace">
       {/* Top Banner: Pipeline & Route Metadata */}
