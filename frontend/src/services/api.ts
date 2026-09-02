@@ -16,10 +16,16 @@ export async function uploadDocumentApi(file: File): Promise<{ message: string; 
   formData.append('file', file);
 
   const url = `${API_BASE_URL}/api/upload`;
-  const response = await fetch(url, {
-    method: 'POST',
-    body: formData,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+  } catch (err: any) {
+    const detail = err?.message ? `: ${err.message}` : '';
+    throw new Error(`Upload request failed${detail}`);
+  }
 
   if (!response.ok) {
     throw new Error(`Upload error (${response.status})`);
@@ -41,7 +47,8 @@ export async function processDocumentApi(file: File, provider: string = 'gemini'
       body: formData,
     });
   } catch (err: any) {
-    throw new Error('Backend server is unavailable. Please start the Doc2Digital backend.');
+    const detail = err?.message ? `: ${err.message}` : '';
+    throw new Error(`Document processing request failed${detail}`);
   }
 
   if (!response.ok) {
