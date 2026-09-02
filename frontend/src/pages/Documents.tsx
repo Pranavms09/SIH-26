@@ -77,21 +77,45 @@ export default function Documents() {
     };
   }, []);
 
+  const registerSelectedFiles = (files: File[]) => {
+    if (!files.length) return;
+    
+    setSelectedFiles(files);
+    setActiveDocumentFile(files[0]);
+
+    files.forEach(f => {
+      const pendingId = `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const pendingDoc: Document = {
+        id: pendingId,
+        filename: f.name,
+        originalName: f.name,
+        status: 'pending',
+        language: 'marathi',
+        pages: 1,
+        uploadedAt: new Date().toISOString(),
+        fileSize: f.size,
+        mimeType: f.type || 'application/pdf',
+        location: { village: '—', tehsil: '—', district: '—', state: 'Maharashtra' },
+      };
+      addDocument(pendingDoc);
+    });
+
+    addToast('success', `${files.length} document${files.length > 1 ? 's' : ''} added.`);
+  };
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
     if (files.length) {
-      setSelectedFiles(prev => [...prev, ...files]);
-      addToast('success', `${files.length} document${files.length > 1 ? 's' : ''} added.`);
+      registerSelectedFiles(files);
     }
-  }, [addToast]);
+  }, [addToast, setActiveDocumentFile, addDocument]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
       const files = Array.from(e.target.files);
-      setSelectedFiles(prev => [...prev, ...files]);
-      addToast('success', `${files.length} document${files.length > 1 ? 's' : ''} added.`);
+      registerSelectedFiles(files);
       e.target.value = '';
     }
   };
@@ -103,12 +127,12 @@ export default function Documents() {
   const handleStartProcessing = async () => {
     if (isUploading) return;
 
-    if (selectedFiles.length === 0) {
+    const fileToProcess = selectedFiles[0] || activeDocumentFile;
+
+    if (!fileToProcess) {
       addToast('warning', 'Please select a document first.');
       return;
     }
-
-    const fileToProcess = selectedFiles[0];
 
     // Allowed extension verification
     const ext = fileToProcess.name.slice(fileToProcess.name.lastIndexOf('.')).toLowerCase();
@@ -443,7 +467,7 @@ export default function Documents() {
             type="button"
             className="btn btn-primary"
             style={{ width: '100%', justifyContent: 'center' }}
-            disabled={isUploading || selectedFiles.length === 0}
+            disabled={isUploading || (selectedFiles.length === 0 && !activeDocumentFile)}
             onClick={handleStartProcessing}
           >
             {isUploading ? (

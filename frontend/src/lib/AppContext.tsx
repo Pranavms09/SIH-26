@@ -17,6 +17,7 @@ interface AppContextType {
   documents: Document[];
   setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
   addDocument: (doc: Document) => void;
+  updateDocument: (docId: string, updates: Partial<Document>) => void;
   landRecords: LandRecord[];
   setLandRecords: React.Dispatch<React.SetStateAction<LandRecord[]>>;
   addLandRecord: (record: LandRecord) => void;
@@ -53,7 +54,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addDocument = useCallback((doc: Document) => {
-    setDocuments(prev => [doc, ...prev]);
+    setDocuments(prev => [doc, ...prev.filter(d => d.id !== doc.id)]);
+  }, []);
+
+  const updateDocument = useCallback((docId: string, updates: Partial<Document>) => {
+    setDocuments(prev => prev.map(d => d.id === docId ? { ...d, ...updates } : d));
   }, []);
 
   const addLandRecord = useCallback((rec: LandRecord) => {
@@ -83,7 +88,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       copilotOpen, setCopilotOpen,
       notifications, addToast, dismissToast,
       activeRecord, setActiveRecord,
-      documents, setDocuments, addDocument,
+      documents, setDocuments, addDocument, updateDocument,
       landRecords, setLandRecords, addLandRecord,
       activeProcessResult, setActiveProcessResult,
       activeDocumentFile, setActiveDocumentFile,
