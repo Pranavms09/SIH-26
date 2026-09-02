@@ -18,8 +18,7 @@ export default function Landing() {
     tl.fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, delay: 0.2 })
       .fromTo('.hero-title', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1 }, '-=0.6')
       .fromTo('.hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.6')
-      .fromTo('.hero-actions', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.6')
-      .fromTo('.hero-visual', { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 1.2 }, '-=0.4');
+      .fromTo('.hero-actions', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.6');
 
     // Scroll GSAP Animations
     gsap.utils.toArray('.scroll-fade').forEach((element: any) => {
@@ -115,65 +114,6 @@ export default function Landing() {
             <button className="btn btn-secondary btn-lg">
               See how it works
             </button>
-          </div>
-        </div>
-
-        {/* Hero Visual Mockup */}
-        <div className="hero-visual">
-          <div className="hero-visual-container glass">
-            {/* Left: Document */}
-            <div className="hero-visual-col doc-col">
-              <div className="hero-visual-header">Historical Record</div>
-              <div className="doc-sim-mini">
-                <div className="doc-header-row">
-                  <div className="doc-stamp" />
-                  <div className="doc-title-line" style={{ width: 120 }} />
-                </div>
-                <div className="doc-text-line" style={{ width: '80%', opacity: 0.3 }} />
-                <div className="doc-text-line" style={{ width: '60%', opacity: 0.3 }} />
-                <div className="ocr-box-sim active" style={{ top: '40%', height: 24 }} />
-                <div className="doc-text-line" style={{ width: '90%', opacity: 0.3 }} />
-                <div className="ocr-box-sim" style={{ top: '60%', height: 24 }} />
-                <div className="doc-text-line" style={{ width: '70%', opacity: 0.3 }} />
-              </div>
-            </div>
-
-            {/* Center: Processing */}
-            <div className="hero-visual-center">
-              <div className="processing-line" />
-              <div className="processing-nodes">
-                <div className="node active">OCR</div>
-                <div className="node active">NLP</div>
-                <div className="node active">Validation</div>
-              </div>
-            </div>
-
-            {/* Right: Data */}
-            <div className="hero-visual-col data-col">
-              <div className="hero-visual-header">Structured Data</div>
-              <div className="data-sim-mini">
-                <div className="data-row-sim">
-                  <span>Owner</span>
-                  <span className="text-primary">Rajendra Patil</span>
-                </div>
-                <div className="data-row-sim">
-                  <span>Survey No.</span>
-                  <span className="text-accent">124/3A</span>
-                </div>
-                <div className="data-row-sim">
-                  <span>Area</span>
-                  <span className="text-primary">2.48 ha</span>
-                </div>
-                <div className="data-row-sim">
-                  <span>Status</span>
-                  <span className="badge badge-verified">Verified</span>
-                </div>
-                <div className="data-row-sim">
-                  <span>Confidence</span>
-                  <span className="text-accent">98.7%</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
