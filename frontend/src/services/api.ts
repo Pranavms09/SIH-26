@@ -22,8 +22,8 @@ export async function uploadDocumentApi(file: File): Promise<{ message: string; 
       method: 'POST',
       body: formData,
     });
-  } catch (err: any) {
-    const detail = err?.message ? `: ${err.message}` : '';
+  } catch (err: unknown) {
+    const detail = err instanceof Error ? `: ${err.message}` : '';
     throw new Error(`Upload request failed${detail}`);
   }
 
@@ -46,8 +46,8 @@ export async function processDocumentApi(file: File, provider: string = 'gemini'
       method: 'POST',
       body: formData,
     });
-  } catch (err: any) {
-    const detail = err?.message ? `: ${err.message}` : '';
+  } catch (err: unknown) {
+    const detail = err instanceof Error ? `: ${err.message}` : '';
     throw new Error(`Document processing request failed${detail}`);
   }
 
