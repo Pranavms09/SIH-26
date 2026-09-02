@@ -8,7 +8,10 @@ from app.api.process import router as process_router
 app = FastAPI(
     title="Doc2Digital API",
     description="Intelligent Land Record Digitization & Verification Platform",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
 
 origins = [
