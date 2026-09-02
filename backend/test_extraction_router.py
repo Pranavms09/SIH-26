@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 from app.models.land_record import LandRecord, ExtractedField
 from app.services.extraction_router import route_document
+from app.services.document_complexity_service import analyze_document_complexity
 
 
 class TestExtractionRouter(unittest.TestCase):
