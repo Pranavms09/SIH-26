@@ -1,5 +1,6 @@
+# pyrefly: ignore [missing-import]
 try:
-    import pytesseract
+    import pytesseract  # type: ignore
 except ImportError:
     pytesseract = None
 
