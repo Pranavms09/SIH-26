@@ -70,7 +70,7 @@ class TestDocumentComplexity(unittest.TestCase):
         )
 
         self.assertEqual(res["classification"], "complex")
-        self.assertEqual(res["recommended_route"], "groq")
+        self.assertIn(res["recommended_route"], ("gemini", "groq"))
         self.assertGreaterEqual(res["score"], 0.50)
 
     def test_03_missing_fields_increase_score(self):

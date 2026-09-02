@@ -53,7 +53,7 @@ def route_document(
         )
 
         # Confirm conservative fallback rule: if classification is not 'complex', default to 'ocr'
-        if recommended_route not in ("ocr", "groq"):
+        if recommended_route not in ("ocr", "gemini", "groq", "ai"):
             recommended_route = "ocr"
 
         return {

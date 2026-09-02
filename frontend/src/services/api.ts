@@ -35,8 +35,11 @@ export async function uploadDocumentApi(file: File): Promise<{ message: string; 
 }
 
 export async function processDocumentApi(file: File, provider: string = 'gemini'): Promise<ProcessResponse> {
-  const formData = new FormData();
-  formData.append('file', file);
+  const buildFormData = () => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return fd;
+  };
 
   const url = `${API_BASE_URL}/api/process?provider=${encodeURIComponent(provider)}`;
 
@@ -44,11 +47,20 @@ export async function processDocumentApi(file: File, provider: string = 'gemini'
   try {
     response = await fetch(url, {
       method: 'POST',
-      body: formData,
+      body: buildFormData(),
     });
   } catch (err: unknown) {
-    const detail = err instanceof Error ? `: ${err.message}` : '';
-    throw new Error(`Document processing request failed${detail}`);
+    // Single bounded retry to seamlessly handle Render free tier cold-start wakeups
+    try {
+      await new Promise(res => setTimeout(res, 2000));
+      response = await fetch(url, {
+        method: 'POST',
+        body: buildFormData(),
+      });
+    } catch (retryErr: unknown) {
+      const detail = retryErr instanceof Error ? `: ${retryErr.message}` : '';
+      throw new Error(`Document processing request failed${detail}`);
+    }
   }
 
   if (!response.ok) {

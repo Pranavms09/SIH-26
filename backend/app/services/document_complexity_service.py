@@ -60,17 +60,10 @@ def analyze_document_complexity(
         threshold (float): Classification threshold (default 0.50).
 
     Returns:
-        Dict[str, Any]: Diagnostic payload containing classification, score, threshold,
-                       recommended_route, signals breakdown, and explainable reasons.
-    """
-    reasons: List[str] = []
-    signals: Dict[str, Dict[str, Any]] = {}
-    total_score = 0.0
-
+        Dict[str, Any]: Diagnostic payload containing classification, score, threshol    # ------------------------------------------------------------------
+    # Signal 1: Rule-Based Extractor Field Completeness & Coverage (Weight: 0.50)
     # ------------------------------------------------------------------
-    # Signal 1: Rule-Based Extractor Field Completeness & Coverage (Weight: 0.35)
-    # ------------------------------------------------------------------
-    sig1_weight = 0.35
+    sig1_weight = 0.50
     extraction_coverage = 0.0
     if record is not None:
         expected_fields = [
@@ -96,13 +89,6 @@ def analyze_document_complexity(
             reasons.append(f"Rule-based extractor missed {missing_count} out of 7 expected fields (coverage: {extracted_count}/7).")
         else:
             reasons.append("All 7 expected fields were extracted cleanly by rule-based pipeline.")
-
-        signals["field_completeness"] = {
-            "score": sig1_score,
-            "max_weight": sig1_weight,
-            "details": f"{extracted_count}/7 fields extracted cleanly",
-            "coverage": extraction_coverage,
-        }
     else:
         signals["field_completeness"] = {
             "score": 0.0,
@@ -112,9 +98,9 @@ def analyze_document_complexity(
         }
 
     # ------------------------------------------------------------------
-    # Signal 2: Validation Status & Failure Warning (Weight: 0.25)
+    # Signal 2: Validation Status & Failure Warning (Weight: 0.20)
     # ------------------------------------------------------------------
-    sig2_weight = 0.25
+    sig2_weight = 0.20
     sig2_score = 0.0
     val_details = []
 
@@ -128,7 +114,7 @@ def analyze_document_complexity(
 
         survey_ref = fields.get("survey_reference", {})
         if survey_ref.get("status") in ("possible_error", "not_found", "invalid"):
-            sig2_score += 0.10
+            sig2_score += 0.05
             val_details.append(f"survey_reference status {survey_ref.get('status')}")
 
         consistency = fields.get("cross_field_consistency", {})
@@ -157,20 +143,20 @@ def analyze_document_complexity(
         }
 
     # ------------------------------------------------------------------
-    # Signal 3: Table / Layout Structure Density (Weight: 0.20)
+    # Signal 3: Table / Layout Structure Density (Weight: 0.15)
     # ------------------------------------------------------------------
-    sig3_weight = 0.20
+    sig3_weight = 0.15
     sig3_score = 0.0
     text = ocr_text or ""
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     line_count = len(lines)
 
     if line_count > 25:
-        sig3_score += 0.10
+        sig3_score += 0.08
 
     detected_keywords = [kw for kw in TABLE_KEYWORDS if kw in text]
     if len(detected_keywords) >= 2:
-        sig3_score += 0.10
+        sig3_score += 0.07
 
     sig3_score = min(sig3_weight, round(sig3_score, 3))
     total_score += sig3_score
@@ -199,7 +185,6 @@ def analyze_document_complexity(
     if record and record.owner_name and record.owner_name.value:
         owner_str = record.owner_name.value
 
-    # Check for multiple owner indicators (commas, newlines, keywords)
     has_multiple_owners = (
         len(detected_owner_terms) > 0
         or "," in owner_str
@@ -221,27 +206,24 @@ def analyze_document_complexity(
     }
 
     # ------------------------------------------------------------------
-    # Signal 5: OCR Text Density & Page Count (Weight: 0.10)
+    # Signal 5: Low OCR Quality / Handwriting / Missing Landmarks (Weight: 0.15)
     # ------------------------------------------------------------------
-    sig5_weight = 0.10
+    sig5_weight = 0.15
     sig5_score = 0.0
     char_count = len(text)
 
-    if char_count > 600:
-        sig5_score += 0.05
-    if page_count > 1:
-        sig5_score += 0.05
+    key_landmarks = ["जिल्हा", "तालुका", "गाव", "गट", "भूमापन", "7/12", "सातबारा"]
+    found_landmarks = [kw for kw in key_landmarks if kw in text]
 
-    sig5_score = min(sig5_weight, round(sig5_score, 3))
-    total_score += sig5_score
+    if char_count < 150 or len(found_landmarks) < 2 or (record and extraction_coverage < 0.50):
+        sig5_score = sig5_weight
+        total_score += sig5_score
+        reasons.append("Low OCR quality / missing key header landmarks indicates handwritten or degraded document.")
 
-    if sig5_score > 0:
-        reasons.append(f"High text volume ({char_count} characters, {page_count} page(s)).")
-
-    signals["ocr_text_density"] = {
+    signals["ocr_text_quality"] = {
         "score": sig5_score,
         "max_weight": sig5_weight,
-        "details": f"{char_count} chars, {page_count} page(s)",
+        "details": f"{char_count} chars, {len(found_landmarks)} landmarks found",
     }
 
     # ------------------------------------------------------------------
@@ -249,9 +231,12 @@ def analyze_document_complexity(
     # ------------------------------------------------------------------
     final_score = round(min(1.0, total_score), 3)
 
+    from app.config import get_primary_ai_provider
+    primary_ai = get_primary_ai_provider().lower()
+
     if final_score >= threshold:
         classification = "complex"
-        recommended_route = "groq"
+        recommended_route = primary_ai if primary_ai in ("gemini", "groq") else "gemini"
     else:
         classification = "simple"
         recommended_route = "ocr"

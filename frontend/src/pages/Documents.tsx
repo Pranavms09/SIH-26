@@ -92,6 +92,7 @@ export default function Documents() {
       const files = Array.from(e.target.files);
       setSelectedFiles(prev => [...prev, ...files]);
       addToast('success', `${files.length} document${files.length > 1 ? 's' : ''} added.`);
+      e.target.value = '';
     }
   };
 
