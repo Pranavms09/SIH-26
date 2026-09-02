@@ -19,8 +19,8 @@
     linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 40px 40px;
-  mask-image: radial-gradient(circle at 50% 30%, black 10%, transparent 60%);
-  -webkit-mask-image: radial-gradient(circle at 50% 30%, black 10%, transparent 60%);
+  mask-image: radial-gradient(ellipse at 50% 35%, black 25%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 35%, black 25%, transparent 75%);
   z-index: 0;
   pointer-events: none;
 }
@@ -39,9 +39,10 @@
 }
 
 .landing-nav-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--space-6);
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 var(--space-8);
   height: 100%;
   display: flex;
   align-items: center;
@@ -68,36 +69,37 @@
 .hero-section {
   position: relative;
   min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 120px var(--space-6) 60px;
+  padding: 100px var(--space-6) 60px;
   text-align: center;
   z-index: 1;
   overflow: hidden;
 }
 
-/* Magic Rings Canvas Backdrop */
+/* Magic Rings Canvas Backdrop — Full Size Edge to Edge */
 .hero-rings-backdrop {
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
-  max-width: 1400px;
-  height: 800px;
+  height: 100%;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.9;
+  opacity: 0.95;
   overflow: hidden;
 }
 
 .hero-content {
   position: relative;
   z-index: 2;
-  max-width: 800px;
-  margin: 0 auto 60px;
+  max-width: 860px;
+  margin: 0 auto;
 }
 
 .hero-badge {
@@ -397,7 +399,9 @@
 }
 
 .landing-footer-inner {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 var(--space-8);
   margin: 0 auto;
   display: flex;
   justify-content: space-between;

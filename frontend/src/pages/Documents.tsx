@@ -40,7 +40,7 @@ function formatFileSize(bytes: number) {
 }
 
 export default function Documents() {
-  const { addToast, documents, addDocument, addLandRecord, setActiveProcessResult, setActiveRecord, setActiveDocumentFile } = useApp();
+  const { addToast, documents, addDocument, addLandRecord, setActiveProcessResult, setActiveRecord, activeDocumentFile, setActiveDocumentFile } = useApp();
   const navigate = useNavigate();
   
   const [isDragging, setIsDragging] = useState(false);

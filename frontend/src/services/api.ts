@@ -1,4 +1,4 @@
-import type { ProcessResponse } from '../types';
+import type { ProcessResponse, CadastralParcel, GISSearchResponse } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
@@ -85,5 +85,90 @@ export async function processDocumentApi(file: File, provider: string = 'gemini'
 
   const data: ProcessResponse = await response.json();
   return data;
+}
+
+// ═══════════════════════════════════════════
+// GIS & CADASTRAL APIs
+// ═══════════════════════════════════════════
+
+export async function fetchCadastralParcelsApi(): Promise<CadastralParcel[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/gis/parcels`);
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const json = await res.json();
+    return json.parcels || [];
+  } catch (err) {
+    console.warn('[GIS API] Failed to fetch backend parcels, falling back to local registry:', err);
+    return [];
+  }
+}
+
+export async function searchGhatNumberApi(
+  gatNumber: string,
+  district?: string,
+  taluka?: string,
+  village?: string
+): Promise<GISSearchResponse | null> {
+  try {
+    const params = new URLSearchParams();
+    if (gatNumber) params.append('gat_number', gatNumber);
+    if (district) params.append('district', district);
+    if (taluka) params.append('taluka', taluka);
+    if (village) params.append('village', village);
+
+    const res = await fetch(`${API_BASE_URL}/api/gis/search?${params.toString()}`);
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn('[GIS API] Search request failed, using local search:', err);
+    return null;
+  }
+}
+
+export async function fetchParcelByIdApi(identifier: string): Promise<CadastralParcel | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/gis/parcels/${encodeURIComponent(identifier)}`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.parcel || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function demarcateParcelApi(payload: {
+  gat_number: string;
+  location_name: string;
+  owner_name?: string;
+  area_ha?: number;
+}): Promise<CadastralParcel | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/gis/demarcate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    return json.parcel || null;
+  } catch (err) {
+    console.warn('[GIS API] Demarcation API failed, using frontend local fallback:', err);
+    return null;
+  }
+}
+
+export async function importGeoJSONApi(geojsonData: any): Promise<{ imported_count: number; parcels: CadastralParcel[] } | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/gis/import-geojson`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(geojsonData),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn('[GIS API] GeoJSON import API failed, parsing locally:', err);
+    return null;
+  }
 }
 
