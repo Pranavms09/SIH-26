@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, ArrowRight, CheckCircle, AlertTriangle, XCircle, Clock, MapPin } from 'lucide-react';
-import { mockLandRecords } from '../data/mockData';
+import { useApp } from '../lib/AppContext';
 import { useNavigate } from 'react-router-dom';
 
 const STATUS_CONFIG = {
@@ -14,11 +14,12 @@ const STATUS_CONFIG = {
 const FILTERS = ['All Records', 'Verified', 'Needs Review', 'Unverified'];
 
 export default function LandRecords() {
+  const { landRecords } = useApp();
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All Records');
   const navigate = useNavigate();
 
-  const filtered = mockLandRecords.filter(r => {
+  const filtered = landRecords.filter(r => {
     const q = query.toLowerCase();
     const matchQ = !q ||
       r.land.surveyNumber.toLowerCase().includes(q) ||

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Edit3, X, AlertTriangle, Info, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, ArrowLeft, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Check, Edit3, X, AlertTriangle, Info, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, ArrowLeft, ZoomIn, ZoomOut, RotateCcw, Upload } from 'lucide-react';
 import { useApp } from '../lib/AppContext';
 import { useNavigate } from 'react-router-dom';
 import type { ExtractedField } from '../types';
@@ -149,7 +149,28 @@ export default function Verification() {
   const navigate = useNavigate();
 
   // Find active land record
-  const currentRecord = landRecords.find(r => r.id === activeRecord) || landRecords[0];
+  const currentRecord = landRecords.find(r => r.id === activeRecord);
+
+  const handleGoBack = () => {
+    setActiveProcessResult(null);
+    setActiveDocumentFile(null);
+    navigate('/app/documents');
+  };
+
+  if (!currentRecord && !activeProcessResult) {
+    return (
+      <div className="verification-workspace" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 420, gap: 16 }}>
+        <FileText size={48} style={{ opacity: 0.3, color: 'var(--text-muted)' }} />
+        <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 600, color: 'var(--text-primary)' }}>No Document Selected</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)', textAlign: 'center', maxWidth: 420 }}>
+          Upload a scanned 7/12 land record to extract structured data and perform authoritative verification.
+        </p>
+        <button className="btn btn-primary" onClick={handleGoBack} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Upload size={15} /> Upload Document
+        </button>
+      </div>
+    );
+  }
 
   // Helper to safely format extracted field status and confidence
   const getFieldProps = (fieldObj: { value?: string | null; confidence?: number } | undefined, defaultConf: number) => {
@@ -201,17 +222,17 @@ export default function Verification() {
           ...getFieldProps(activeProcessResult.record.area, 0.85),
         },
       ]
-    : [
-        { fieldId: 'survey_no', label: 'Survey Number', value: currentRecord?.land?.surveyNumber || '124/3A', confidence: 99, status: 'accepted' as const },
-        { fieldId: 'khasra_no', label: 'Khasra Number', value: currentRecord?.land?.khasraNumber || 'K-4821', confidence: 97, status: 'accepted' as const },
-        { fieldId: 'khata_no', label: 'Khata Number', value: currentRecord?.land?.khataNumber || 'KH-29382', confidence: 96, status: 'accepted' as const },
-        { fieldId: 'plot_area', label: 'Plot Area', value: `${currentRecord?.land?.plotArea || 2.48} ${currentRecord?.land?.areaUnit || 'ha'}`, confidence: 78, status: 'needs_review' as const },
-        { fieldId: 'village', label: 'Village', value: currentRecord?.location?.village || 'Pimpri', confidence: 99, status: 'accepted' as const },
-        { fieldId: 'tehsil', label: 'Tehsil', value: currentRecord?.location?.tehsil || 'Haveli', confidence: 99, status: 'accepted' as const },
-        { fieldId: 'district', label: 'District', value: currentRecord?.location?.district || 'Pune', confidence: 99, status: 'accepted' as const },
-        { fieldId: 'state', label: 'State', value: currentRecord?.location?.state || 'Maharashtra', confidence: 99, status: 'accepted' as const },
-        { fieldId: 'owner_name', label: 'Owner Name', value: currentRecord?.ownership?.ownerName || 'Rajendra Patil', confidence: 98, status: 'accepted' as const },
-      ];
+    : currentRecord
+    ? [
+        { fieldId: 'survey_number', label: 'Survey Number', value: currentRecord.land?.surveyNumber || '—', confidence: currentRecord.confidence || 90, status: 'accepted' as const },
+        { fieldId: 'village', label: 'Village', value: currentRecord.location?.village || '—', confidence: 95, status: 'accepted' as const },
+        { fieldId: 'tehsil', label: 'Tehsil', value: currentRecord.location?.tehsil || '—', confidence: 95, status: 'accepted' as const },
+        { fieldId: 'district', label: 'District', value: currentRecord.location?.district || '—', confidence: 95, status: 'accepted' as const },
+        { fieldId: 'state', label: 'State', value: currentRecord.location?.state || 'Maharashtra', confidence: 99, status: 'accepted' as const },
+        { fieldId: 'owner_name', label: 'Owner Name', value: currentRecord.ownership?.ownerName || '—', confidence: 90, status: 'accepted' as const },
+        { fieldId: 'area', label: 'Area', value: `${currentRecord.land?.plotArea || 0} ${currentRecord.land?.areaUnit || 'ha'}`, confidence: 85, status: 'accepted' as const },
+      ]
+    : [];
 
   const [fieldStates, setFieldStates] = useState<Record<string, FieldStatus>>(
     Object.fromEntries(initialFields.map(f => [f.fieldId, f.status as FieldStatus]))

@@ -34,8 +34,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [activeRecord, setActiveRecord] = useState<string | null>(null);
-  const [documents, setDocuments] = useState<Document[]>(mockDocuments);
-  const [landRecords, setLandRecords] = useState<LandRecord[]>(mockLandRecords);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [landRecords, setLandRecords] = useState<LandRecord[]>([]);
   const [activeProcessResult, setActiveProcessResult] = useState<ProcessResponse | null>(null);
   const [activeDocumentFile, setActiveDocumentFile] = useState<File | null>(null);
 
