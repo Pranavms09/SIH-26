@@ -85,3 +85,24 @@ def get_primary_ai_provider() -> str:
     if provider in ("gemini", "groq"):
         return provider
     return DEFAULT_PRIMARY_AI_PROVIDER
+
+
+def get_cors_origins() -> list:
+    """
+    Retrieve configured CORS allowed origins from environment variable CORS_ORIGINS or default list.
+    Supports comma-separated URLs in CORS_ORIGINS.
+    """
+    env_origins = os.getenv("CORS_ORIGINS", "").strip()
+    default_origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    if env_origins:
+        additional = [o.strip() for o in env_origins.split(",") if o.strip()]
+        return list(dict.fromkeys(default_origins + additional))
+    return default_origins
+
