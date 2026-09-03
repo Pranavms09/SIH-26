@@ -341,6 +341,7 @@ export interface CadastralParcel {
   record_id?: string | null;
   centroid: [number, number];
   bounds: [[number, number], [number, number]];
+  village_code?: string;
   mutation_no?: string;
   crops?: string[];
   geojson: {
