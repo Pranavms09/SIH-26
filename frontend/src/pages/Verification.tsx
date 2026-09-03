@@ -281,46 +281,8 @@ export default function Verification() {
     return () => window.removeEventListener('keydown', handler);
   }, [handleAction]);
 
-  // Determine extraction source message
-  const extractionSource = activeProcessResult?.extraction?.source || currentRecord?.extractionMetadata?.source;
-  const extractionRoute = activeProcessResult?.extraction?.route || currentRecord?.extractionMetadata?.route;
+  // Extraction source metadata (kept for potential future use)
   const geminiError = activeProcessResult?.extraction?.gemini_error || currentRecord?.extractionMetadata?.gemini_error;
-
-  const getSourceBadge = () => {
-    if (extractionRoute === 'local_escalated_to_gemini') {
-      return (
-        <span className="badge badge-verified" style={{ background: 'rgba(74, 124, 89, 0.2)', border: '1px solid #4a7c59' }}>
-          <Sparkles size={11} style={{ color: 'var(--accent-green-bright)' }} /> Processed with Gemini Vision (Escalated from Local OCR)
-        </span>
-      );
-    }
-    if (extractionSource === 'gemini_vision' || extractionRoute === 'gemini') {
-      return (
-        <span className="badge badge-verified" style={{ background: 'rgba(74, 124, 89, 0.2)', border: '1px solid #4a7c59' }}>
-          <Sparkles size={11} style={{ color: 'var(--accent-green-bright)' }} /> Processed with Gemini Vision
-        </span>
-      );
-    }
-    if (extractionSource === 'groq_vision' || extractionRoute === 'groq') {
-      return (
-        <span className="badge badge-processing">
-          <Cpu size={11} /> Processed with Groq Vision
-        </span>
-      );
-    }
-    if (geminiError) {
-      return (
-        <span className="badge badge-review">
-          <AlertTriangle size={11} /> Gemini unavailable — Local OCR fallback used
-        </span>
-      );
-    }
-    return (
-      <span className="badge badge-processing">
-        <Cpu size={11} /> Processed with Local OCR
-      </span>
-    );
-  };
 
   const complexity = activeProcessResult?.complexity || currentRecord?.complexity;
   const rawPages = activeProcessResult?.pages || currentRecord?.rawPages;
@@ -341,7 +303,11 @@ export default function Verification() {
 
         <div style={{ width: 1, height: 18, background: 'var(--border-color)', flexShrink: 0 }} />
 
-        {getSourceBadge()}
+        {geminiError && (
+          <span className="badge badge-review">
+            <AlertTriangle size={11} /> Fallback OCR was used
+          </span>
+        )}
         {complexity && (
           <span className={`badge ${complexity.classification === 'simple' ? 'badge-verified' : 'badge-review'}`}>
             Complexity: {complexity.classification.toUpperCase()} ({Math.round(complexity.score * 100)}%)
