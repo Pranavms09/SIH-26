@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Edit3, X, AlertTriangle, Info, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, ArrowLeft, ZoomIn, ZoomOut, RotateCcw, Upload } from 'lucide-react';
+import { Check, Edit3, X, AlertTriangle, Info, ChevronDown, ChevronUp, Cpu, Sparkles, FileText, ArrowLeft, ZoomIn, ZoomOut, RotateCcw, Upload, MapPin, Compass } from 'lucide-react';
 import { useApp } from '../lib/AppContext';
 import { useNavigate } from 'react-router-dom';
 import type { ExtractedField } from '../types';
@@ -148,8 +148,8 @@ export default function Verification() {
   const { addToast, activeRecord, landRecords, activeProcessResult, activeDocumentFile, setActiveProcessResult, setActiveDocumentFile } = useApp();
   const navigate = useNavigate();
 
-  // Find active land record
-  const currentRecord = landRecords.find(r => r.id === activeRecord);
+  // Find active land record (or fallback to first available record)
+  const currentRecord = landRecords.find(r => r.id === activeRecord) || landRecords[0];
 
   const handleGoBack = () => {
     setActiveProcessResult(null);
@@ -186,44 +186,44 @@ export default function Verification() {
   // Derive extracted fields from backend result or land record
   const initialFields: ExtractedField[] = activeProcessResult?.record
     ? [
-        {
-          fieldId: 'district',
-          label: 'District (जिल्हा)',
-          ...getFieldProps(activeProcessResult.record.district, 0.95),
-        },
-        {
-          fieldId: 'taluka',
-          label: 'Taluka / Tehsil (तालुका)',
-          ...getFieldProps(activeProcessResult.record.taluka, 0.95),
-        },
-        {
-          fieldId: 'village',
-          label: 'Village (गाव)',
-          ...getFieldProps(activeProcessResult.record.village, 0.95),
-        },
-        {
-          fieldId: 'survey_number',
-          label: 'Survey Number (गट क्रमांक)',
-          ...getFieldProps(activeProcessResult.record.survey_number, 0.90),
-        },
-        {
-          fieldId: 'owner_name',
-          label: 'Owner Name (खातेदाराचे नाव)',
-          ...getFieldProps(activeProcessResult.record.owner_name, 0.90),
-        },
-        {
-          fieldId: 'land_holding_type',
-          label: 'Land Holding Type (धारण प्रकार)',
-          ...getFieldProps(activeProcessResult.record.land_holding_type, 0.90),
-        },
-        {
-          fieldId: 'area',
-          label: 'Area (क्षेत्रफल)',
-          ...getFieldProps(activeProcessResult.record.area, 0.85),
-        },
-      ]
+      {
+        fieldId: 'district',
+        label: 'District (जिल्हा)',
+        ...getFieldProps(activeProcessResult.record.district, 0.95),
+      },
+      {
+        fieldId: 'taluka',
+        label: 'Taluka / Tehsil (तालुका)',
+        ...getFieldProps(activeProcessResult.record.taluka, 0.95),
+      },
+      {
+        fieldId: 'village',
+        label: 'Village (गाव)',
+        ...getFieldProps(activeProcessResult.record.village, 0.95),
+      },
+      {
+        fieldId: 'survey_number',
+        label: 'Survey Number (गट क्रमांक)',
+        ...getFieldProps(activeProcessResult.record.survey_number, 0.90),
+      },
+      {
+        fieldId: 'owner_name',
+        label: 'Owner Name (खातेदाराचे नाव)',
+        ...getFieldProps(activeProcessResult.record.owner_name, 0.90),
+      },
+      {
+        fieldId: 'land_holding_type',
+        label: 'Land Holding Type (धारण प्रकार)',
+        ...getFieldProps(activeProcessResult.record.land_holding_type, 0.90),
+      },
+      {
+        fieldId: 'area',
+        label: 'Area (क्षेत्रफल)',
+        ...getFieldProps(activeProcessResult.record.area, 0.85),
+      },
+    ]
     : currentRecord
-    ? [
+      ? [
         { fieldId: 'survey_number', label: 'Survey Number', value: currentRecord.land?.surveyNumber || '—', confidence: currentRecord.confidence || 90, status: 'accepted' as const },
         { fieldId: 'village', label: 'Village', value: currentRecord.location?.village || '—', confidence: 95, status: 'accepted' as const },
         { fieldId: 'tehsil', label: 'Tehsil', value: currentRecord.location?.tehsil || '—', confidence: 95, status: 'accepted' as const },
@@ -232,24 +232,53 @@ export default function Verification() {
         { fieldId: 'owner_name', label: 'Owner Name', value: currentRecord.ownership?.ownerName || '—', confidence: 90, status: 'accepted' as const },
         { fieldId: 'area', label: 'Area', value: `${currentRecord.land?.plotArea || 0} ${currentRecord.land?.areaUnit || 'ha'}`, confidence: 85, status: 'accepted' as const },
       ]
-    : [];
+      : [];
 
   const [fieldStates, setFieldStates] = useState<Record<string, FieldStatus>>(
     Object.fromEntries(initialFields.map(f => [f.fieldId, f.status as FieldStatus]))
   );
+  // User verified/edited values dictionary (Single Source of Truth: verifiedValue || extractedValue)
+  const [verifiedValues, setVerifiedValues] = useState<Record<string, string>>({});
   const [selectedField, setSelectedField] = useState<string | null>(initialFields[0]?.fieldId || null);
   const [editValue, setEditValue] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [rawTextOpen, setRawTextOpen] = useState(false);
 
+  // Helper to read effective value: verifiedValue || extractedValue
+  const getEffectiveValue = useCallback((fieldId: string): string => {
+    // If the user has verified/edited this field, use it
+    if (verifiedValues[fieldId] !== undefined && verifiedValues[fieldId] !== '') {
+      return verifiedValues[fieldId];
+    }
+    // Otherwise fallback to extracted value
+    const f = initialFields.find(item => item.fieldId === fieldId);
+    const rawVal = f?.value;
+    if (!rawVal || rawVal === '—' || rawVal === '-' || rawVal === 'null' || rawVal === 'none') {
+      return '';
+    }
+    return rawVal.trim();
+  }, [verifiedValues, initialFields]);
+
   const selectedFieldData = initialFields.find(f => f.fieldId === selectedField);
   const needsReviewFields = initialFields.filter(f => fieldStates[f.fieldId] === 'needs_review' || f.confidence < 80);
+
+  // Check if any location information is available
+  const hasLocationInfo = Boolean(
+    getEffectiveValue('district') ||
+    getEffectiveValue('taluka') ||
+    getEffectiveValue('tehsil') ||
+    getEffectiveValue('village') ||
+    getEffectiveValue('survey_number') ||
+    activeProcessResult?.record?.district?.value ||
+    currentRecord?.location?.district
+  );
 
   const handleAction = useCallback((action: 'edit' | 'flag' | 'save' | 'cancel') => {
     if (!selectedField) return;
     if (action === 'edit') {
       setIsEditing(true);
-      setEditValue(selectedFieldData?.value ?? '');
+      const effectiveVal = getEffectiveValue(selectedField);
+      setEditValue(effectiveVal === '—' || effectiveVal === '-' ? '' : effectiveVal);
     } else if (action === 'flag') {
       // Toggle between needs_review and accepted
       const current = fieldStates[selectedField];
@@ -261,13 +290,15 @@ export default function Verification() {
         addToast('info', 'Field flagged for review.');
       }
     } else if (action === 'save') {
+      const trimmed = editValue.trim();
+      setVerifiedValues(prev => ({ ...prev, [selectedField]: trimmed }));
       setFieldStates(prev => ({ ...prev, [selectedField]: 'edited' }));
       setIsEditing(false);
-      addToast('success', 'Field updated.');
+      addToast('success', `${selectedFieldData?.label || 'Field'} updated to "${trimmed}".`);
     } else if (action === 'cancel') {
       setIsEditing(false);
     }
-  }, [selectedField, fieldStates, selectedFieldData, addToast]);
+  }, [selectedField, fieldStates, selectedFieldData, editValue, getEffectiveValue, addToast]);
 
   // Keyboard shortcuts: E = edit, F = flag for review, Escape = cancel edit
   useEffect(() => {
@@ -280,6 +311,48 @@ export default function Verification() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [handleAction]);
+
+  // Navigate to GIS and auto-search & zoom into District, Taluka, Village, and Gat
+  // ALWAYS uses: verifiedValue || extractedValue
+  const handleViewOnMap = useCallback(() => {
+    const getCleanField = (fieldId: string): string => {
+      const val = getEffectiveValue(fieldId);
+      if (!val || val === '—' || val === '-' || val === 'null' || val === 'none') {
+        return '';
+      }
+      return val.trim();
+    };
+
+    let dist = getCleanField('district') || activeProcessResult?.record?.district?.value || currentRecord?.location?.district || '';
+    let taluka = getCleanField('taluka') || getCleanField('tehsil') || activeProcessResult?.record?.taluka?.value || currentRecord?.location?.tehsil || '';
+    let village = getCleanField('village') || activeProcessResult?.record?.village?.value || currentRecord?.location?.village || '';
+    let gat = getCleanField('survey_number') || activeProcessResult?.record?.survey_number?.value || currentRecord?.land?.surveyNumber || '';
+
+    // Clean placeholders
+    if (dist === '—' || dist === '-') dist = '';
+    if (taluka === '—' || taluka === '-') taluka = '';
+    if (village === '—' || village === '-') village = '';
+    if (gat === '—' || gat === '-') gat = '';
+
+    // If completely empty, inform the user
+    if (!dist && !taluka && !village && !gat) {
+      addToast('error', 'Location information required to view on map.');
+      return;
+    }
+
+    // Build URL query parameters
+    const params = new URLSearchParams();
+    if (dist) params.set('district', dist);
+    if (taluka) params.set('taluka', taluka);
+    if (village) params.set('village', village);
+    if (gat) params.set('gat', gat);
+
+    const searchTerms = [gat ? `Gat ${gat}` : '', village, taluka, dist].filter(Boolean).join(', ');
+    if (searchTerms) params.set('search', searchTerms);
+
+    addToast('info', `Searching Cadastral GIS for ${searchTerms || dist}...`);
+    navigate(`/app/gis?${params.toString()}`);
+  }, [getEffectiveValue, activeProcessResult, currentRecord, navigate, addToast]);
 
   // Determine extraction source message
   const extractionSource = activeProcessResult?.extraction?.source || currentRecord?.extractionMetadata?.source;
@@ -350,6 +423,32 @@ export default function Verification() {
         <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
           Record ID: <strong style={{ color: 'var(--text-primary)' }}>{currentRecord?.id || 'LR-DOC2DIGITAL'}</strong>
         </span>
+
+        {/* View on Map Button */}
+        <button
+          className="btn btn-primary btn-sm"
+          onClick={handleViewOnMap}
+          disabled={!hasLocationInfo}
+          style={{
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 7,
+            fontSize: 'var(--text-xs)',
+            padding: '5px 14px',
+            background: hasLocationInfo ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)' : 'var(--bg-card)',
+            color: hasLocationInfo ? '#ffffff' : 'var(--text-muted)',
+            border: '1px solid rgba(16, 185, 129, 0.4)',
+            borderRadius: 6,
+            fontWeight: 650,
+            cursor: hasLocationInfo ? 'pointer' : 'not-allowed',
+            boxShadow: hasLocationInfo ? '0 2px 10px rgba(16, 185, 129, 0.3)' : 'none',
+            transition: 'all 0.2s ease',
+          }}
+          title={hasLocationInfo ? "View on Cadastral Map" : "Location information required to view on map."}
+        >
+          <MapPin size={14} style={{ color: hasLocationInfo ? '#ffffff' : 'var(--text-muted)' }} /> 📍 View on Map
+        </button>
       </div>
 
       {/* Left: Document Viewer & Raw Page OCR */}
@@ -397,14 +496,26 @@ export default function Verification() {
 
       {/* Center: Extracted Fields (Preserve Marathi Unicode Strings) */}
       <div className="workspace-center">
-        <div className="workspace-panel-header">
+        <div className="workspace-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="workspace-panel-title">Extracted Data</span>
-          <span className="badge badge-verified">{currentRecord?.id}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              className="btn btn-secondary btn-xs"
+              onClick={handleViewOnMap}
+              disabled={!hasLocationInfo}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '11px', padding: '3px 9px', borderRadius: 4, cursor: hasLocationInfo ? 'pointer' : 'not-allowed' }}
+              title={hasLocationInfo ? "View on Cadastral Map" : "Location information required to view on map."}
+            >
+              <Compass size={12} style={{ color: hasLocationInfo ? 'var(--accent-green-bright)' : 'var(--text-muted)' }} /> View on Map
+            </button>
+            <span className="badge badge-verified">{currentRecord?.id}</span>
+          </div>
         </div>
 
         <div className="extraction-fields">
           {initialFields.map(f => {
             const status = fieldStates[f.fieldId] || 'auto';
+            const displayVal = getEffectiveValue(f.fieldId) || f.value;
             return (
               <motion.div
                 key={f.fieldId}
@@ -416,7 +527,7 @@ export default function Verification() {
                 <div className="field-label" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>{f.label}</div>
                 <div className="field-value-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
                   <span className={`field-value ${status === 'rejected' ? 'rejected' : ''}`} style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    {f.value}
+                    {displayVal}
                   </span>
                   <span className={`field-status-badge ${status}`} style={{ fontSize: 'var(--text-xs)' }}>
                     {status === 'accepted' && <Check size={10} />}
@@ -478,11 +589,11 @@ export default function Verification() {
               </div>
 
               {/* Show edited value if field was modified */}
-              {fieldStates[selectedField!] === 'edited' && editValue && (
+              {verifiedValues[selectedField!] !== undefined && verifiedValues[selectedField!] !== selectedFieldData.value && (
                 <div className="vap-row" style={{ marginTop: 4 }}>
                   <span className="vap-row-label" style={{ color: 'var(--accent-gold)' }}>Edited to:</span>
                   <span className="vap-row-value" style={{ fontWeight: 600, color: 'var(--accent-gold)' }}>
-                    {editValue}
+                    {verifiedValues[selectedField!]}
                   </span>
                 </div>
               )}
@@ -490,11 +601,11 @@ export default function Verification() {
               <div className="vap-confidence" style={{ margin: '12px 0' }}>
                 <Info size={12} style={{ color: 'var(--text-muted)' }} />
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-                  Confidence: {selectedFieldData.value === '—' ? '—' : `${selectedFieldData.confidence}%`}
-                  {selectedFieldData.confidence >= 90 && selectedFieldData.value !== '—' && (
+                  Confidence: {getEffectiveValue(selectedField!) ? `${selectedFieldData.confidence}%` : '—'}
+                  {selectedFieldData.confidence >= 90 && getEffectiveValue(selectedField!) && (
                     <span style={{ color: 'var(--status-verified)', marginLeft: 6 }}>● High confidence — auto-accepted</span>
                   )}
-                  {selectedFieldData.value === '—' && (
+                  {!getEffectiveValue(selectedField!) && (
                     <span style={{ color: 'var(--status-review)', marginLeft: 6 }}>● Missing value — needs review</span>
                   )}
                 </span>
@@ -511,6 +622,7 @@ export default function Verification() {
                     value={editValue}
                     onChange={e => setEditValue(e.target.value)}
                     autoFocus
+                    placeholder="e.g. Pune, Nashik, Baramati, Vadgaon, 233"
                     onKeyDown={e => {
                       if (e.key === 'Enter') handleAction('save');
                       if (e.key === 'Escape') handleAction('cancel');
@@ -530,27 +642,54 @@ export default function Verification() {
                   </div>
                 </div>
               ) : (
-                /* Default mode: Edit + optional Flag */
-                <div className="vap-actions" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                /* Default mode: Edit + optional Flag + View on Map */
+                <div className="vap-actions" style={{ marginTop: 14 }}>
+                  <div className="vap-actions-row">
+                    <button
+                      className="vap-btn edit"
+                      onClick={() => handleAction('edit')}
+                      title="Edit this field value (E)"
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Edit3 size={14} style={{ color: 'var(--accent-gold, #f59e0b)' }} />
+                        <span>Edit Value</span>
+                      </span>
+                      <kbd>E</kbd>
+                    </button>
+                    <button
+                      className={`vap-btn ${fieldStates[selectedField!] === 'needs_review' ? 'accept' : 'reject'}`}
+                      onClick={() => handleAction('flag')}
+                      title="Flag this field for manual review (F)"
+                    >
+                      {fieldStates[selectedField!] === 'needs_review' ? (
+                        <>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Check size={14} />
+                            <span>Mark OK</span>
+                          </span>
+                          <kbd>F</kbd>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <AlertTriangle size={14} />
+                            <span>Flag Review</span>
+                          </span>
+                          <kbd>F</kbd>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
                   <button
-                    className="vap-btn edit"
-                    onClick={() => handleAction('edit')}
-                    style={{ flex: 1 }}
-                    title="Edit this field value (E)"
+                    className="vap-btn-map"
+                    onClick={handleViewOnMap}
+                    disabled={!hasLocationInfo}
+                    title={hasLocationInfo ? "View on Cadastral Map" : "Location information required to view on map."}
                   >
-                    <Edit3 size={13} /> Edit Value <kbd>E</kbd>
-                  </button>
-                  <button
-                    className={`vap-btn ${fieldStates[selectedField!] === 'needs_review' ? 'accept' : 'reject'}`}
-                    onClick={() => handleAction('flag')}
-                    style={{ flex: 1 }}
-                    title="Flag this field for manual review (F)"
-                  >
-                    {fieldStates[selectedField!] === 'needs_review' ? (
-                      <><Check size={13} /> Mark OK <kbd>F</kbd></>
-                    ) : (
-                      <><AlertTriangle size={13} /> Flag <kbd>F</kbd></>
-                    )}
+                    <MapPin size={15} style={{ color: hasLocationInfo ? '#10b981' : 'var(--text-muted)' }} />
+                    <span>View on Cadastral Map</span>
+                    <Compass size={13} style={{ opacity: 0.7, marginLeft: 2 }} />
                   </button>
                 </div>
               )}

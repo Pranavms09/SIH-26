@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
+import { useApp } from '../lib/AppContext';
 
 import { mockCadastralParcels } from '../data/mockData';
 import { fetchCadastralParcelsApi, demarcateParcelApi, importGeoJSONApi } from '../services/api';
@@ -54,12 +55,62 @@ function toDevanagariGat(english: string): string {
   return english.replace(/[0-9A-Da-d]/g, ch => ENG_TO_DEV[ch] || ch);
 }
 
+// Marathi to English Place Name mapping
+const MARATHI_TO_ENG_REGIONS: Record<string, string> = {
+  'पुणे': 'Pune',
+  'हवेली': 'Haveli',
+  'बारामती': 'Baramati',
+  'वडगाव': 'Vadgaon',
+  'नांदगाव': 'Nandgaon',
+  'नाशिक': 'Nashik',
+  'दिंडोरी': 'Dindori',
+  'सोलापूर': 'Solapur',
+  'पंढरपूर': 'Pandharpur',
+  'सातारा': 'Satara',
+  'वाई': 'Wai',
+  'बीड': 'Beed',
+  'अंबाजोगाई': 'Ambajogai',
+  'लातूर': 'Latur',
+  'कोल्हापूर': 'Kolhapur',
+  'नागपूर': 'Nagpur',
+  'सांगली': 'Sangli',
+  'अहमदनगर': 'Ahmednagar',
+  'जालना': 'Jalna',
+  'नांदेड': 'Nanded',
+  'मुंबई': 'Mumbai',
+  'ठाणे': 'Thane',
+  'औरंगाबाद': 'Aurangabad',
+  'अमरावती': 'Amravati',
+  'अकोला': 'Akola',
+  'चंद्रपूर': 'Chandrapur',
+  'धुळे': 'Dhule',
+  'जळगाव': 'Jalgaon',
+  'वर्धा': 'Wardha',
+  'यवतमाळ': 'Yavatmal',
+  'बुलढाणा': 'Buldhana',
+  'वाशिम': 'Washim',
+  'भंडारा': 'Bhandara',
+  'गोंदिया': 'Gondia',
+  'गडचिरोली': 'Gadchiroli',
+  'पालघर': 'Palghar',
+  'रायगड': 'Raigad',
+  'रत्नागिरी': 'Ratnagiri',
+  'सिंधुदुर्ग': 'Sindhudurg',
+  'परभणी': 'Parbhani',
+  'हिंगोली': 'Hingoli',
+  'नंदुरबार': 'Nandurbar',
+  'धाराशिव': 'Dharashiv',
+  'उस्मानाबाद': 'Osmanabad',
+};
+
 // Curated Maharashtra regions for instant offline geocoding
 const MAHARASHTRA_REGIONS: Record<string, { lat: number; lng: number; taluka: string; district: string }> = {
   baramati: { lat: 18.1519, lng: 74.5770, taluka: 'Baramati', district: 'Pune' },
+  vadgaon: { lat: 18.1700, lng: 74.5800, taluka: 'Baramati', district: 'Pune' },
   ambajogai: { lat: 18.7325, lng: 76.3842, taluka: 'Ambajogai', district: 'Beed' },
   pimpri: { lat: 18.6275, lng: 73.8525, taluka: 'Haveli', district: 'Pune' },
   haveli: { lat: 18.5204, lng: 73.8567, taluka: 'Haveli', district: 'Pune' },
+  nandgaon: { lat: 18.4612, lng: 73.8821, taluka: 'Haveli', district: 'Pune' },
   pune: { lat: 18.5204, lng: 73.8567, taluka: 'Haveli', district: 'Pune' },
   pandharpur: { lat: 17.6740, lng: 75.3250, taluka: 'Pandharpur', district: 'Solapur' },
   solapur: { lat: 17.6599, lng: 75.9064, taluka: 'Solapur', district: 'Solapur' },
@@ -75,6 +126,30 @@ const MAHARASHTRA_REGIONS: Record<string, { lat: number; lng: number; taluka: st
   ahmednagar: { lat: 19.0948, lng: 74.7480, taluka: 'Nagar', district: 'Ahmednagar' },
   jalna: { lat: 19.8410, lng: 75.8864, taluka: 'Jalna', district: 'Jalna' },
   nanded: { lat: 19.1383, lng: 77.3210, taluka: 'Nanded', district: 'Nanded' },
+  thane: { lat: 19.2183, lng: 72.9781, taluka: 'Thane', district: 'Thane' },
+  mumbai: { lat: 19.0760, lng: 72.8777, taluka: 'Mumbai', district: 'Mumbai' },
+  aurangabad: { lat: 19.8762, lng: 75.3433, taluka: 'Aurangabad', district: 'Chhatrapati Sambhajinagar' },
+  ratnagiri: { lat: 16.9902, lng: 73.3120, taluka: 'Ratnagiri', district: 'Ratnagiri' },
+  raigad: { lat: 18.5158, lng: 73.1822, taluka: 'Alibag', district: 'Raigad' },
+  amravati: { lat: 20.9320, lng: 77.7523, taluka: 'Amravati', district: 'Amravati' },
+  akola: { lat: 20.7002, lng: 77.0082, taluka: 'Akola', district: 'Akola' },
+  wardha: { lat: 20.7453, lng: 78.6022, taluka: 'Wardha', district: 'Wardha' },
+  chandrapur: { lat: 19.9615, lng: 79.2961, taluka: 'Chandrapur', district: 'Chandrapur' },
+  yavatmal: { lat: 20.3888, lng: 78.1204, taluka: 'Yavatmal', district: 'Yavatmal' },
+  buldhana: { lat: 20.5292, lng: 76.1843, taluka: 'Buldhana', district: 'Buldhana' },
+  washim: { lat: 20.1110, lng: 77.1340, taluka: 'Washim', district: 'Washim' },
+  bhandara: { lat: 21.1713, lng: 79.6548, taluka: 'Bhandara', district: 'Bhandara' },
+  gondia: { lat: 21.4604, lng: 80.1961, taluka: 'Gondia', district: 'Gondia' },
+  gadchiroli: { lat: 20.1849, lng: 79.9948, taluka: 'Gadchiroli', district: 'Gadchiroli' },
+  dhule: { lat: 20.9042, lng: 74.7749, taluka: 'Dhule', district: 'Dhule' },
+  jalgaon: { lat: 21.0077, lng: 75.5626, taluka: 'Jalgaon', district: 'Jalgaon' },
+  nandurbar: { lat: 21.3700, lng: 74.2400, taluka: 'Nandurbar', district: 'Nandurbar' },
+  palghar: { lat: 19.6967, lng: 72.7699, taluka: 'Palghar', district: 'Palghar' },
+  sindhudurg: { lat: 16.1264, lng: 73.5594, taluka: 'Kudal', district: 'Sindhudurg' },
+  parbhani: { lat: 19.2686, lng: 76.7733, taluka: 'Parbhani', district: 'Parbhani' },
+  hingoli: { lat: 19.7196, lng: 77.1477, taluka: 'Hingoli', district: 'Hingoli' },
+  dharashiv: { lat: 18.1861, lng: 76.0419, taluka: 'Dharashiv', district: 'Dharashiv' },
+  osmanabad: { lat: 18.1861, lng: 76.0419, taluka: 'Osmanabad', district: 'Osmanabad' },
 };
 
 function generateCadastralBoundary(lat: number, lng: number, areaHa: number = 2.15): number[][][] {
@@ -172,21 +247,11 @@ export default function GIS() {
     };
   }, []);
 
-  // Handle URL query parameters (e.g. /app/gis?gat=312/2 or ?survey=124/3A)
-  useEffect(() => {
-    const gatFromUrl = searchParams.get('gat') || searchParams.get('survey');
-    if (gatFromUrl && parcels.length > 0) {
-      const cleanUrlGat = normalizeGat(gatFromUrl);
-      const match = parcels.find(p => normalizeGat(p.gat_number) === cleanUrlGat || p.gat_marathi === gatFromUrl);
-      if (match) {
-        setGatQuery(match.gat_number);
-        handleSelectParcel(match);
-      }
-    }
-  }, [searchParams, parcels]);
+  const { addToast } = useApp();
+  const processedUrlRef = useRef<string>('');
 
   // Handle parcel selection and map positioning
-  const handleSelectParcel = (parcel: CadastralParcel) => {
+  const handleSelectParcel = useCallback((parcel: CadastralParcel) => {
     setSelectedParcel(parcel);
     if (parcel.bounds) {
       setTargetBounds(parcel.bounds);
@@ -195,7 +260,208 @@ export default function GIS() {
       setTargetCentroid(parcel.centroid);
       setTargetBounds(null);
     }
-  };
+  }, []);
+
+  // Handle URL query parameters from 7/12 document verification:
+  // e.g. /app/gis?district=Nashik&taluka=Baramati&village=Vadgaon&gat=233
+  // Automatically executes search, selects district, zooms to parcel, and highlights polygon.
+  useEffect(() => {
+    const rawSearch = searchParams.toString();
+    if (!rawSearch || processedUrlRef.current === rawSearch) return;
+
+    const districtParam = searchParams.get('district');
+    const talukaParam = searchParams.get('taluka') || searchParams.get('tehsil');
+    const villageParam = searchParams.get('village');
+    const gatParam = searchParams.get('gat') || searchParams.get('survey');
+    const searchParam = searchParams.get('search') || searchParams.get('q');
+
+    const resolvePlace = (raw: string | null) => {
+      if (!raw || raw === '—' || raw === '-' || raw === 'null') return '';
+      const t = raw.trim();
+      return MARATHI_TO_ENG_REGIONS[t] || t;
+    };
+
+    const cleanDist = resolvePlace(districtParam);
+    const cleanTaluka = resolvePlace(talukaParam);
+    const cleanVillage = resolvePlace(villageParam);
+    const cleanGat = gatParam && gatParam !== '—' && gatParam !== '-' ? normalizeGat(gatParam) : '';
+
+    if (!cleanGat && !cleanDist && !cleanTaluka && !cleanVillage && !searchParam) return;
+
+    processedUrlRef.current = rawSearch;
+
+    // 1. Auto-select District filter
+    if (cleanDist) {
+      setSelectedDistrict(cleanDist);
+    }
+
+    // 2. Set search box query text
+    const displayTerms = [cleanGat ? `Gat ${cleanGat}` : '', cleanVillage, cleanTaluka, cleanDist].filter(Boolean).join(', ');
+    const queryText = displayTerms || searchParam || cleanDist;
+    setGatQuery(queryText);
+
+    // 3. Search and Zoom to matching parcel
+    let match: CadastralParcel | undefined;
+    if (parcels.length > 0) {
+      if (cleanGat) {
+        // Strongest combination: Gat Number + location
+        match = parcels.find(p => {
+          const gMatch = normalizeGat(p.gat_number) === cleanGat || p.gat_marathi === gatParam;
+          if (!gMatch) return false;
+          if (cleanDist && p.district_en.toLowerCase() !== cleanDist.toLowerCase() && p.district.toLowerCase() !== cleanDist.toLowerCase()) {
+            return false;
+          }
+          if (cleanTaluka && p.taluka_en.toLowerCase() !== cleanTaluka.toLowerCase() && p.taluka.toLowerCase() !== cleanTaluka.toLowerCase()) {
+            return false;
+          }
+          return true;
+        });
+
+        if (!match) {
+          match = parcels.find(p => normalizeGat(p.gat_number) === cleanGat || p.gat_marathi === gatParam);
+        }
+      }
+
+      if (!match && cleanVillage) {
+        match = parcels.find(p => p.village_en.toLowerCase() === cleanVillage.toLowerCase() || p.village.toLowerCase() === cleanVillage.toLowerCase());
+      }
+
+      if (!match && cleanTaluka) {
+        match = parcels.find(p => p.taluka_en.toLowerCase() === cleanTaluka.toLowerCase() || p.taluka.toLowerCase() === cleanTaluka.toLowerCase());
+      }
+    }
+
+    if (match) {
+      handleSelectParcel(match);
+      addToast('info', `📍 Located Gat ${match.gat_number} (${match.village_en}, ${match.district_en}) on Cadastral Map`);
+      return;
+    }
+
+    // 4. Regional or Geocoded Resolution:
+    // Look up strongest combination: Village -> Taluka -> District
+    const lookupCandidate = (cleanVillage || cleanTaluka || cleanDist || '').toLowerCase().trim();
+    const regionMatch = MAHARASHTRA_REGIONS[lookupCandidate] ||
+      (cleanVillage ? MAHARASHTRA_REGIONS[cleanVillage.toLowerCase().trim()] : null) ||
+      (cleanTaluka ? MAHARASHTRA_REGIONS[cleanTaluka.toLowerCase().trim()] : null) ||
+      (cleanDist ? MAHARASHTRA_REGIONS[cleanDist.toLowerCase().trim()] : null);
+
+    if (regionMatch) {
+      const { lat, lng, taluka: regTaluka, district: regDist } = regionMatch;
+      const finalDist = cleanDist || regDist;
+      const finalTaluka = cleanTaluka || regTaluka;
+      const finalVillage = cleanVillage || regTaluka;
+      const finalGat = cleanGat || '7/12-SCAN';
+
+      const polyCoords = generateCadastralBoundary(lat, lng, 2.15);
+      const docParcel: CadastralParcel = {
+        id: `parcel-doc-${Date.now()}`,
+        gat_number: finalGat,
+        gat_marathi: toDevanagariGat(finalGat),
+        district: finalDist,
+        district_en: finalDist,
+        taluka: finalTaluka,
+        taluka_en: finalTaluka,
+        village: finalVillage,
+        village_en: finalVillage,
+        owner_name: 'शेतकरी खातेदार (7/12 Scanned)',
+        owner_name_en: 'Verified Landholder',
+        area_ha: 2.15,
+        area_guntha: 215,
+        area_acres: 5.31,
+        land_type: 'जिरायत (शेतजमीन)',
+        land_type_en: 'Jirayat (Agricultural)',
+        soil_class: 'Class 1 (काळी जमीन)',
+        status: 'verified',
+        record_id: null,
+        centroid: [Number(lat.toFixed(5)), Number(lng.toFixed(5))],
+        bounds: [
+          [Number((lat - 0.003).toFixed(5)), Number((lng - 0.003).toFixed(5))],
+          [Number((lat + 0.003).toFixed(5)), Number((lng + 0.003).toFixed(5))],
+        ],
+        mutation_no: 'थेट ७/१२ भू-नकाशा नोंद',
+        crops: ['सोयाबीन (Soybean)', 'कापूस (Cotton)'],
+        geojson: {
+          type: 'Feature',
+          properties: {
+            id: `parcel-doc-${Date.now()}`,
+            gat_number: finalGat,
+            gat_marathi: toDevanagariGat(finalGat),
+            village: finalVillage,
+            district: finalDist,
+            owner: 'Verified Landholder',
+            area_ha: 2.15,
+          },
+          geometry: {
+            type: 'Polygon',
+            coordinates: polyCoords,
+          },
+        },
+      };
+
+      setParcels(prev => [docParcel, ...prev]);
+      handleSelectParcel(docParcel);
+      addToast('info', `📍 Centered on ${[finalGat ? `Gat ${finalGat}` : '', finalVillage, finalDist].filter(Boolean).join(', ')} on Cadastral Map`);
+    } else {
+      // Direct OSM Geocoding fallback if outside regional presets
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryText + ', Maharashtra, India')}&countrycodes=in&limit=1`, { headers: { 'Accept-Language': 'en' } })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            const polyCoords = generateCadastralBoundary(lat, lng, 2.15);
+            const docParcel: CadastralParcel = {
+              id: `parcel-doc-${Date.now()}`,
+              gat_number: cleanGat || '7/12-SCAN',
+              gat_marathi: toDevanagariGat(cleanGat || '7/12-SCAN'),
+              district: cleanDist || 'Maharashtra',
+              district_en: cleanDist || 'Maharashtra',
+              taluka: cleanTaluka || 'Taluka',
+              taluka_en: cleanTaluka || 'Taluka',
+              village: cleanVillage || 'Village',
+              village_en: cleanVillage || 'Village',
+              owner_name: 'शेतकरी खातेदार (7/12 Scanned)',
+              owner_name_en: 'Verified Landholder',
+              area_ha: 2.15,
+              area_guntha: 215,
+              area_acres: 5.31,
+              land_type: 'जिरायत (शेतजमीन)',
+              land_type_en: 'Jirayat (Agricultural)',
+              soil_class: 'Class 1 (काळी जमीन)',
+              status: 'verified',
+              record_id: null,
+              centroid: [Number(lat.toFixed(5)), Number(lng.toFixed(5))],
+              bounds: [
+                [Number((lat - 0.003).toFixed(5)), Number((lng - 0.003).toFixed(5))],
+                [Number((lat + 0.003).toFixed(5)), Number((lng + 0.003).toFixed(5))],
+              ],
+              mutation_no: 'थेट ७/१२ भू-नकाशा नोंद',
+              crops: ['सोयाबीन (Soybean)', 'कापूस (Cotton)'],
+              geojson: {
+                type: 'Feature',
+                properties: {
+                  id: `parcel-doc-${Date.now()}`,
+                  gat_number: cleanGat || '7/12-SCAN',
+                  gat_marathi: toDevanagariGat(cleanGat || '7/12-SCAN'),
+                  village: cleanVillage || 'Village',
+                  district: cleanDist || 'Maharashtra',
+                  owner: 'Verified Landholder',
+                  area_ha: 2.15,
+                },
+                geometry: {
+                  type: 'Polygon',
+                  coordinates: polyCoords,
+                },
+              },
+            };
+            setParcels(prev => [docParcel, ...prev]);
+            handleSelectParcel(docParcel);
+            addToast('info', `📍 Geocoded and highlighted ${queryText} on Cadastral Map`);
+          }
+        })
+        .catch(err => console.warn('Geocoding fallback failed:', err));
+    }
+  }, [searchParams, parcels, handleSelectParcel, addToast]);
 
   // Filtered parcels based on search input and district filter
   const filteredParcels = useMemo(() => {
@@ -780,12 +1046,27 @@ export default function GIS() {
             District Filter
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-            {['All', 'Beed', 'Pune', 'Solapur', 'Nashik', 'Satara'].map(d => (
+            {Array.from(new Set(['All', 'Beed', 'Pune', 'Solapur', 'Nashik', 'Satara', ...(selectedDistrict && selectedDistrict !== 'All' ? [selectedDistrict] : [])])).map(d => (
               <button
                 key={d}
                 className={`btn btn-xs ${selectedDistrict === d ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ padding: '2px 8px', fontSize: '11px', borderRadius: '12px' }}
-                onClick={() => setSelectedDistrict(d)}
+                onClick={() => {
+                  setSelectedDistrict(d);
+                  if (d !== 'All') {
+                    const p = parcels.find(x => x.district_en.toLowerCase() === d.toLowerCase() || x.district === d);
+                    if (p) {
+                      handleSelectParcel(p);
+                    } else if (MAHARASHTRA_REGIONS[d.toLowerCase()]) {
+                      const reg = MAHARASHTRA_REGIONS[d.toLowerCase()];
+                      setTargetCentroid([reg.lat, reg.lng]);
+                      setTargetBounds([
+                        [reg.lat - 0.03, reg.lng - 0.03],
+                        [reg.lat + 0.03, reg.lng + 0.03],
+                      ]);
+                    }
+                  }
+                }}
               >
                 {d === 'All' ? 'सर्व जिल्हे (All)' : d}
               </button>
