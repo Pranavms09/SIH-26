@@ -109,7 +109,7 @@ export default function RecordDetail() {
             <button className="btn btn-secondary btn-sm" onClick={() => addToast('info', 'Export initiated.')}>
               <Download size={14} /> Export
             </button>
-            <button className="btn btn-secondary btn-sm" onClick={() => navigate('/app/gis')}>
+            <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/app/gis?gat=${encodeURIComponent(record.land.surveyNumber)}`)}>
               <Map size={14} /> View in GIS
             </button>
             <button className="btn btn-secondary btn-sm" onClick={() => navigate('/app/audit')}>

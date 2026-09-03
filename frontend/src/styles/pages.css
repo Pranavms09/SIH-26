@@ -266,7 +266,8 @@
   text-align: center;
 }
 
-.upload-zone:hover, .upload-zone.dragging {
+.upload-zone:hover,
+.upload-zone.dragging {
   border-color: var(--accent-green-bright);
   background: rgba(74, 124, 89, 0.03);
 }
@@ -522,12 +523,15 @@
     grid-template-columns: 1.1fr 1fr;
     height: auto;
   }
+
   .workspace-right {
     grid-column: span 2;
   }
 }
 
-.workspace-left, .workspace-center, .workspace-right {
+.workspace-left,
+.workspace-center,
+.workspace-right {
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
@@ -570,10 +574,11 @@
 .doc-sim {
   width: 100%;
   max-width: 460px;
-  aspect-ratio: 0.707; /* A4 Ratio */
+  aspect-ratio: 0.707;
+  /* A4 Ratio */
   background: #fff;
   color: #111;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   border-radius: 4px;
   position: relative;
   padding: var(--space-8);
@@ -627,7 +632,8 @@
   transition: all var(--transition-fast);
 }
 
-.ocr-box:hover, .ocr-box.active {
+.ocr-box:hover,
+.ocr-box.active {
   background: rgba(74, 124, 89, 0.32);
   border: 1px solid var(--accent-green-bright);
   box-shadow: 0 0 12px rgba(74, 124, 89, 0.4);
@@ -645,7 +651,7 @@
   transform: translate(-50%, -50%) rotate(-35deg);
   font-size: 56px;
   font-weight: 800;
-  color: rgba(0,0,0,0.035);
+  color: rgba(0, 0, 0, 0.035);
   user-select: none;
   pointer-events: none;
 }
@@ -655,7 +661,7 @@
   bottom: var(--space-4);
   font-size: var(--text-xs);
   color: var(--text-muted);
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   padding: 4px 10px;
   border-radius: var(--radius-full);
 }
@@ -734,10 +740,25 @@
   border-radius: var(--radius-full);
 }
 
-.field-status-badge.accepted { color: var(--accent-green-bright); background: var(--accent-green-subtle); }
-.field-status-badge.edited { color: var(--accent-gold); background: var(--accent-gold-subtle); }
-.field-status-badge.rejected { color: var(--status-error); background: var(--status-error-bg); }
-.field-status-badge.needs_review { color: var(--accent-gold); background: var(--accent-gold-subtle); }
+.field-status-badge.accepted {
+  color: var(--accent-green-bright);
+  background: var(--accent-green-subtle);
+}
+
+.field-status-badge.edited {
+  color: var(--accent-gold);
+  background: var(--accent-gold-subtle);
+}
+
+.field-status-badge.rejected {
+  color: var(--status-error);
+  background: var(--status-error-bg);
+}
+
+.field-status-badge.needs_review {
+  color: var(--accent-gold);
+  background: var(--accent-gold-subtle);
+}
 
 .field-confidence-bar {
   margin-top: 6px;
@@ -763,7 +784,8 @@
   transition: all var(--transition-fast);
 }
 
-.confidence-item:hover, .confidence-item.selected {
+.confidence-item:hover,
+.confidence-item.selected {
   background: var(--glass-bg-hover);
   border-color: var(--glass-border-strong);
 }
@@ -801,8 +823,13 @@
   color: var(--text-primary);
 }
 
-.vap-row-value.success { color: var(--accent-green-bright); }
-.vap-row-value.error { color: var(--status-error); }
+.vap-row-value.success {
+  color: var(--accent-green-bright);
+}
+
+.vap-row-value.error {
+  color: var(--status-error);
+}
 
 .vap-confidence {
   display: flex;
@@ -840,17 +867,38 @@
 .vap-btn kbd {
   font-size: var(--text-xs);
   padding: 1px 4px;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
 }
 
-.vap-btn.accept { background: var(--status-verified); border-color: var(--accent-green-bright); }
-.vap-btn.accept:hover { background: var(--accent-green-bright); }
-.vap-btn.edit { background: var(--glass-bg); color: var(--text-primary); border-color: var(--glass-border); }
-.vap-btn.edit:hover { background: var(--glass-bg-hover); }
-.vap-btn.reject { background: var(--status-error); border-color: rgba(192,72,72,0.4); }
-.vap-btn.reject:hover { background: #d74d4d; }
+.vap-btn.accept {
+  background: var(--status-verified);
+  border-color: var(--accent-green-bright);
+}
+
+.vap-btn.accept:hover {
+  background: var(--accent-green-bright);
+}
+
+.vap-btn.edit {
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  border-color: var(--glass-border);
+}
+
+.vap-btn.edit:hover {
+  background: var(--glass-bg-hover);
+}
+
+.vap-btn.reject {
+  background: var(--status-error);
+  border-color: rgba(192, 72, 72, 0.4);
+}
+
+.vap-btn.reject:hover {
+  background: #d74d4d;
+}
 
 .keyboard-hint {
   display: flex;
@@ -995,26 +1043,85 @@
 }
 
 /* Floating GIS Panels */
+.gis-top-bar {
+  position: absolute;
+  top: var(--space-4);
+  left: 380px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  z-index: 20;
+  background: rgba(12, 12, 12, 0.85);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+}
+
+.light-mode .gis-top-bar {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.gis-layer-switcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gis-layer-btn {
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 550;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gis-layer-btn:hover {
+  color: var(--text-primary);
+  background: var(--glass-bg-hover);
+}
+
+.gis-layer-btn.active {
+  background: var(--accent-green-bright);
+  color: #000;
+  font-weight: 650;
+}
+
+.gis-label-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-left: 1px solid var(--border-subtle);
+  padding-left: 10px;
+}
+
 .gis-filter-panel {
   position: absolute;
   top: var(--space-4);
   left: var(--space-4);
-  width: 280px;
+  width: 340px;
   max-height: calc(100% - var(--space-8));
-  background: rgba(12, 12, 12, 0.85);
+  background: rgba(12, 12, 12, 0.88);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   z-index: 20;
-  padding: var(--space-5);
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   overflow-y: auto;
 }
 
 .light-mode .gis-filter-panel {
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.90) !important;
 }
 
 .gis-panel-title {
@@ -1028,11 +1135,12 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 6px 10px;
+  padding: 8px 12px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   color: var(--text-muted);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .gis-search-input {
@@ -1044,34 +1152,99 @@
   color: var(--text-primary);
 }
 
-.gis-layers {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+.gis-suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  z-index: 30;
+  overflow: hidden;
 }
 
-.gis-layer-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
+.gis-suggestion-header {
+  padding: 6px 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.gis-suggestion-item {
+  padding: 8px 12px;
   cursor: pointer;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.gis-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.gis-suggestion-item:hover {
+  background: var(--glass-bg-hover);
+}
+
+.gis-suggestion-gat {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-green-bright);
+}
+
+.gis-suggestion-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.gis-chips-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.gis-chips-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.gis-quick-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 4px 8px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  white-space: nowrap;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gis-quick-chip:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--accent-green-bright);
 }
 
 .gis-parcels {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 6px;
   overflow-y: auto;
-  max-height: 220px;
+  max-height: 240px;
 }
 
 .gis-parcel-item {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: var(--space-3);
+  padding: 8px 10px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
@@ -1080,51 +1253,81 @@
   text-align: left;
 }
 
-.gis-parcel-item:hover, .gis-parcel-item.active {
+.gis-parcel-item:hover,
+.gis-parcel-item.active {
   background: var(--glass-bg-hover);
-  border-color: var(--glass-border-strong);
+  border-color: var(--accent-green-bright);
 }
 
 .gis-detail-panel {
   position: absolute;
   top: var(--space-4);
   right: var(--space-4);
-  width: 300px;
-  background: rgba(12, 12, 12, 0.85);
+  width: 340px;
+  max-height: calc(100% - var(--space-8));
+  background: rgba(12, 12, 12, 0.90);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   z-index: 20;
-  padding: var(--space-5);
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .light-mode .gis-detail-panel {
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
 }
 
 .gis-detail-survey {
-  font-size: var(--text-4xl);
+  font-size: 26px;
   font-weight: 850;
   color: var(--accent-green-bright);
   letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .gis-detail-village {
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   margin-top: 4px;
+}
+
+.gis-stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 6px 4px;
+}
+
+.gis-stat-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.gis-stat-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 2px;
 }
 
 .gis-detail-field {
   display: flex;
   justify-content: space-between;
-  font-size: var(--text-sm);
-  padding: 8px 0;
+  align-items: center;
+  font-size: var(--text-xs);
+  padding: 6px 0;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -1135,6 +1338,22 @@
 .gis-detail-value {
   font-weight: 550;
   color: var(--text-primary);
+}
+
+/* Map Label Tooltip */
+.gis-map-label {
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 2px 5px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+}
+
+.gis-map-label::before {
+  display: none !important;
 }
 
 
@@ -1321,7 +1540,8 @@
   letter-spacing: 0.04em;
 }
 
-.audit-record-id, .audit-ip {
+.audit-record-id,
+.audit-ip {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   padding: 1px 5px;
@@ -1586,12 +1806,25 @@
   animation: copilotBounce 1.2s ease-in-out infinite;
 }
 
-.copilot-typing span:nth-child(2) { animation-delay: 0.2s; }
-.copilot-typing span:nth-child(3) { animation-delay: 0.4s; }
+.copilot-typing span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.copilot-typing span:nth-child(3) {
+  animation-delay: 0.4s;
+}
 
 @keyframes copilotBounce {
-  0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-6px); }
+
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-6px);
+  }
 }
 
 .copilot-input-area {
@@ -1722,24 +1955,24 @@
 
 .light-mode .kpi-card {
   background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .light-mode .processing-doc-card,
 .light-mode .processing-stat,
 .light-mode .audit-stat {
   background: #ffffff;
-  border-color: rgba(0,0,0,0.07);
+  border-color: rgba(0, 0, 0, 0.07);
 }
 
 .light-mode .audit-content {
   background: #ffffff;
-  border-color: rgba(0,0,0,0.07);
+  border-color: rgba(0, 0, 0, 0.07);
 }
 
 .light-mode .copilot-drawer {
   background: #f8f9fa;
-  border-left-color: rgba(0,0,0,0.08);
+  border-left-color: rgba(0, 0, 0, 0.08);
 }
 
 /* ═══════════════════════════════════════════
@@ -1755,9 +1988,17 @@
 }
 
 /* Smooth transition when theme changes */
-body, .sidebar, .topbar, .panel, .kpi-card, .badge,
-.audit-stat, .processing-doc-card, .copilot-drawer,
-.gis-filter-panel, .gis-detail-panel {
+body,
+.sidebar,
+.topbar,
+.panel,
+.kpi-card,
+.badge,
+.audit-stat,
+.processing-doc-card,
+.copilot-drawer,
+.gis-filter-panel,
+.gis-detail-panel {
   transition-property: background-color, border-color, color, box-shadow;
   transition-duration: 200ms;
   transition-timing-function: ease;
@@ -1841,7 +2082,7 @@ body, .sidebar, .topbar, .panel, .kpi-card, .badge,
   gap: 2px;
 }
 
-.integration-metric > span:first-child {
+.integration-metric>span:first-child {
   font-size: var(--text-xs);
   color: var(--text-muted);
   text-transform: uppercase;
@@ -1849,7 +2090,7 @@ body, .sidebar, .topbar, .panel, .kpi-card, .badge,
   font-weight: 500;
 }
 
-.integration-metric > span:last-child {
+.integration-metric>span:last-child {
   font-size: var(--text-sm);
   color: var(--text-primary);
   font-weight: 600;
@@ -2226,18 +2467,18 @@ body, .sidebar, .topbar, .panel, .kpi-card, .badge,
 }
 
 /* Vertical rhythm between panel sections */
-.panel + .panel,
-.panel + .dashboard-quick-links {
+.panel+.panel,
+.panel+.dashboard-quick-links {
   margin-top: var(--space-6);
 }
 
 /* Light mode integration cards */
 .light-mode .integration-metrics {
-  background: rgba(0,0,0,0.02);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 /* Fix data table for light mode */
 .light-mode .state-code {
-  background: rgba(0,0,0,0.04);
-  border-color: rgba(0,0,0,0.08);
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
 }

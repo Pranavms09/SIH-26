@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, ArrowRight, CheckCircle, AlertTriangle, XCircle, Clock, MapPin } from 'lucide-react';
+import { Search, Filter, ArrowRight, CheckCircle, AlertTriangle, XCircle, Clock, MapPin, Map as MapIcon } from 'lucide-react';
 import { useApp } from '../lib/AppContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -155,7 +155,21 @@ export default function LandRecords() {
                       </span>
                     </td>
                     <td>
-                      <ArrowRight size={14} style={{ color: 'var(--text-muted)' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-icon"
+                          title="View on Cadastral Map (GIS)"
+                          style={{ padding: 4 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/app/gis?gat=${encodeURIComponent(rec.land.surveyNumber)}`);
+                          }}
+                        >
+                          <MapIcon size={14} style={{ color: 'var(--accent-green-bright)' }} />
+                        </button>
+                        <ArrowRight size={14} style={{ color: 'var(--text-muted)' }} />
+                      </div>
                     </td>
                   </motion.tr>
                 );

@@ -314,3 +314,50 @@ export interface ProcessResponse {
   extraction: ExtractionMetadata;
   complexity: BackendComplexity;
 }
+
+// ═══════════════════════════════════════════
+// GIS & CADASTRAL PARCEL SCHEMAS
+// ═══════════════════════════════════════════
+
+export interface CadastralParcel {
+  id: string;
+  gat_number: string;
+  gat_marathi: string;
+  district: string;
+  district_en: string;
+  taluka: string;
+  taluka_en: string;
+  village: string;
+  village_en: string;
+  owner_name: string;
+  owner_name_en: string;
+  area_ha: number;
+  area_guntha: number;
+  area_acres: number;
+  land_type: string;
+  land_type_en: string;
+  soil_class: string;
+  status: 'verified' | 'needs_review' | 'unverified';
+  record_id?: string | null;
+  centroid: [number, number];
+  bounds: [[number, number], [number, number]];
+  mutation_no?: string;
+  crops?: string[];
+  geojson: {
+    type: 'Feature';
+    properties: Record<string, any>;
+    geometry: {
+      type: 'Polygon';
+      coordinates: number[][][];
+    };
+  };
+}
+
+export interface GISSearchResponse {
+  status: string;
+  query: string;
+  normalized_gat: string;
+  marathi_gat: string;
+  total_matches: number;
+  parcels: CadastralParcel[];
+}
