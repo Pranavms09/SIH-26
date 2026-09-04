@@ -418,11 +418,13 @@ export default function Verification() {
           </span>
         </div>
         <div className="document-viewer-area" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Real Document Preview */}
           <DocumentPreview
             file={activeDocumentFile}
             filename={activeProcessResult?.filename || currentRecord?.documentId}
           />
 
+          {/* Raw Collapsible Page OCR View */}
           {rawPages && rawPages.length > 0 && (
             <div className="panel" style={{ padding: 12 }}>
               <button
@@ -512,6 +514,7 @@ export default function Verification() {
           </span>
         </div>
 
+        {/* Validation List */}
         <div className="confidence-list" style={{ marginBottom: 16 }}>
           {initialFields.map(f => (
             <div key={f.fieldId} className={`confidence-item ${selectedField === f.fieldId ? 'selected' : ''}`} onClick={() => setSelectedField(f.fieldId)}>
@@ -524,6 +527,7 @@ export default function Verification() {
           ))}
         </div>
 
+        {/* Verification action panel */}
         {selectedFieldData && (
           <AnimatePresence mode="wait">
             <motion.div
@@ -565,6 +569,7 @@ export default function Verification() {
               </div>
 
               {isEditing ? (
+                /* Edit mode */
                 <div className="vap-edit">
                   <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
                     Enter corrected value:
@@ -594,6 +599,7 @@ export default function Verification() {
                   </div>
                 </div>
               ) : (
+                /* Default mode: Edit + Flag + View on Map */
                 <div className="vap-actions" style={{ marginTop: 14 }}>
                   <div className="vap-actions-row">
                     <button
