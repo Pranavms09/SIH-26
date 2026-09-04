@@ -47,7 +47,7 @@ export default function Documents() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [progressStage, setProgressStage] = useState<string>('');
-  const [provider, setProvider] = useState<'gemini' | 'groq' | 'ocr'>('gemini');
+  const [provider, setProvider] = useState<'auto' | 'gemini' | 'groq' | 'ocr'>('auto');
   const [searchQuery, setSearchQuery] = useState('');
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
   
@@ -345,7 +345,15 @@ export default function Documents() {
           <div className="section-label" style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Sparkles size={13} style={{ color: 'var(--accent-gold)' }} /> AI Provider Route
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
+            <button
+              type="button"
+              className={`btn btn-sm ${provider === 'auto' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setProvider('auto')}
+              style={{ fontSize: 'var(--text-xs)' }}
+            >
+              Auto
+            </button>
             <button
               type="button"
               className={`btn btn-sm ${provider === 'gemini' ? 'btn-primary' : 'btn-secondary'}`}
