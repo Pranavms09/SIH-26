@@ -31,7 +31,39 @@ def check_gemini_connection():
     status = service.get_status()
     print(f"[*] Service status: {status}")
 
-    return True
+    print("\n[*] Testing live Gemini API connection...")
+    try:
+        # Create a temporary 1x1 white PNG image for testing
+        import tempfile
+        import base64
+        
+        # 1x1 white PNG byte string
+        tiny_png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
+        
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            tmp.write(tiny_png)
+            tmp_path = tmp.name
+
+        try:
+            res = service.generate_gemini_completion(
+                file_path=tmp_path,
+                prompt="Respond with JSON: {\"status\": \"ok\"}",
+                json_mode=True,
+                max_tokens=20
+            )
+            print(f"[✓] SUCCESS: Gemini API connection verified! Response: {res.strip()}")
+            return True
+        finally:
+            import os
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+    except Exception as e:
+        safe_reason = _classify_gemini_error(str(e))
+        print(f"[✗] ERROR: Gemini API call failed!")
+        print(f"    Reason: {safe_reason}")
+        print(f"    Raw Error: {str(e)[:150]}")
+        return False
 
 
 if __name__ == "__main__":

@@ -86,14 +86,16 @@ def _classify_gemini_error(error_message: str) -> str:
         import re
         clean_msg = re.sub(r"key=[A-Za-z0-9_\-]+", "key=[REDACTED]", clean_msg)
 
-    if "401" in clean_msg or "unauthorized" in msg_lower or "api_key_invalid" in msg_lower or "invalid api key" in msg_lower:
+    if "401" in clean_msg or "unauthorized" in msg_lower or "api_key_invalid" in msg_lower or "invalid api key" in msg_lower or "api key not valid" in msg_lower or "bad request" in msg_lower and "key" in msg_lower:
         return "authentication_error: invalid or expired Gemini API key"
+    if "404" in clean_msg or "not_found" in msg_lower or "is not found" in msg_lower:
+        return "model_not_found_error: specified model does not exist or is unavailable (try gemini-2.0-flash or gemini-1.5-flash)"
     if "429" in clean_msg or "resource_exhausted" in msg_lower or "rate limit" in msg_lower or "quota" in msg_lower:
         return "rate_limit_error: Gemini API rate limit or quota exceeded"
     if "timeout" in msg_lower or "timed out" in msg_lower:
         return "timeout_error: Gemini API request timed out"
     if "400" in clean_msg or "invalid_argument" in msg_lower:
-        return "invalid_request_error: HTTP 400 — check model name and request format"
+        return "invalid_request_error: HTTP 400 — check model name, API key, or request payload format"
     if "503" in clean_msg or "unavailable" in msg_lower:
         return "service_unavailable: Gemini API temporarily unavailable"
 
