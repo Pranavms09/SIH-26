@@ -106,7 +106,7 @@ export default function Documents() {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
+    const files = Array.from(e.target.files);
     if (files.length) {
       registerSelectedFiles(files);
     }
